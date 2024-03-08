@@ -24,8 +24,9 @@ namespace WPFCharting
     {
         private Line xAxisLine, yAxisLine;
         private double xAxisStart = 140, yAxisStart = 100, interval = 50;
+        private string ReceivedData;
         private Polyline chartPolyline;
-        private SerialPort SerPort = new SerialPort("COMM6");
+        private SerialPort SerPort;
 
         private Point origin;
         private List<Holder> holders;
@@ -43,8 +44,10 @@ namespace WPFCharting
             this.SizeChanged += (sender, e) => {
                 run();
             };
-
             FetchAvailablePorts();
+            connectButton.Click += (sender, e) => {
+                connect();
+            };
         }
 
         void FetchAvailablePorts()
@@ -54,6 +57,36 @@ namespace WPFCharting
             {
                 Portsbox.Items.Add(port);
             }
+        }
+
+        void connect()
+        {
+            SerPort = new SerialPort(); //instantiate our serial port SerPort
+
+            //hardcoding some parameters, check MSDN for more
+            SerPort.BaudRate = 9600;
+            SerPort.PortName = Portsbox.Text;
+            SerPort.Parity = Parity.None;
+            SerPort.DataBits = 8;
+            SerPort.StopBits = StopBits.One;
+            SerPort.ReadBufferSize = 200000000;
+            SerPort.DataReceived += SerPort_DataReceived;
+
+            try
+            {
+                SerPort.Open();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error...!");
+            }
+        }
+
+        private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            ReceivedData = SerPort.ReadLine(); //read the line from the serial port
+
+            //this.Invoke(new Action(ProcessingData)); //at each received line from serial port we "trigger" a new processingdata delegate
         }
 
         private void run()
