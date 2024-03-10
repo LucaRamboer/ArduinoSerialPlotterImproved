@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -14,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using dataHandler;
 
 namespace WPFCharting
 {
@@ -24,13 +28,16 @@ namespace WPFCharting
     {
         private Line xAxisLine, yAxisLine;
         private double xAxisStart = 140, yAxisStart = 100, interval = 50;
+        private int counter;
         private string ReceivedData;
         private Polyline chartPolyline;
         private SerialPort SerPort;
 
         private Point origin;
+        private string[] split = new string[100];
         private List<Holder> holders;
         private List<Value> values;
+        datahandler data = new datahandler();
         //private List<Channel> channels;
 
         public MainWindow()
@@ -86,7 +93,7 @@ namespace WPFCharting
         {
             ReceivedData = SerPort.ReadLine(); //read the line from the serial port
 
-            //this.Invoke(new Action(ProcessingData)); //at each received line from serial port we "trigger" a new processingdata delegate
+            Dispatcher.Invoke(new Action(ProcessingData)); //at each received line from serial port we "trigger" a new processingdata delegate
         }
 
         private void run()
@@ -242,6 +249,49 @@ namespace WPFCharting
                 if (holder != null)
                     chartPolyline.Points.Add(holder.Point);
             }*/
+        }
+
+        private void ProcessingData() //processing received data and plotting it on a chart
+        {
+
+            try
+            {
+
+                ReceivedData.Split('\t'); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
+
+                /*//parsing the string to double (we expect numbers from the Arduino)
+                Double.TryParse(split[0], out _split1);
+                Double.TryParse(split[1], out _split2);
+                Double.TryParse(split[2], out _split3);
+
+                //the ith element of the Split array will be the recently parsed _split.
+                timeAxis.Enqueue(_split1);
+
+                //plot
+                DataChart.Series["Channel1"].Points.AddXY(Split1[counter], Split2[counter]); //col1 , col2
+                DataChart.Series["Channel2"].Points.AddXY(Split1[counter], Split3[counter]); //col1 , col3
+                DataChart.ChartAreas[0].RecalculateAxesScale(); //recalculate.rescale
+
+                //handle the output
+                foutput = _split1.ToString() + "\t" + _split2.ToString() + "\t" + _split3.ToString() + Environment.NewLine;
+                //we put together the variables into a string (foutput) again
+
+                if (FileSavingCheckBox.Checked == true) //file saving, same folder as executable
+                {
+                    using (StreamWriter sw = File.AppendText("Outputfile.txt"))//appendtext = the previous file will be continued
+                    {
+                        sw.Write(foutput); //write the content of foutput into the file
+                    }
+                }
+                */
+            }
+            catch { }
+
+            counter++;
+            //the value of the counter is increased by one at each loop (at each new data)
+            //this makes sure that the next series of data is written in the next line of the arrays
+
+            
         }
     }
 
