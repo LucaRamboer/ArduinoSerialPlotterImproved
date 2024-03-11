@@ -67,7 +67,7 @@ namespace WPFCharting
             chartPolyline = new Polyline()
             {
                 Stroke = color,
-                StrokeThickness = 5,
+                StrokeThickness = 2,
             };
             chart.Children.Add(chartPolyline);
             for(int i = 0; i < metingen;i++)
