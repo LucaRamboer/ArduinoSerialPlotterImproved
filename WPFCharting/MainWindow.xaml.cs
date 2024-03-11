@@ -17,7 +17,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using dataHandler;
 
 namespace WPFCharting
 {
@@ -29,16 +28,26 @@ namespace WPFCharting
         private Line xAxisLine, yAxisLine;
         private double xAxisStart = 140, yAxisStart = 100, interval = 50;
         private int counter;
+        private int count;
+        private int colorCount;
         private string ReceivedData;
         private Polyline chartPolyline;
         private SerialPort SerPort;
 
         private Point origin;
-        private string[] split = new string[100];
+        public static string[] split = new string[] { };
         private List<Holder> holders;
         private List<Value> values;
-        datahandler data = new datahandler();
-        //private List<Channel> channels;
+        private List<channel> channels = new List<channel>();
+        private SolidColorBrush[] colors = new SolidColorBrush[] {
+            Brushes.Blue,
+            Brushes.Brown,
+            Brushes.Red,
+            Brushes.Green,
+            Brushes.Magenta,
+            Brushes.Yellow,
+            Brushes.DarkGreen
+        }; 
 
         public MainWindow()
         {
@@ -256,8 +265,21 @@ namespace WPFCharting
 
             try
             {
+                split = ReceivedData.Split('/'); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
+                count = split.Length;
+                
+                while(count != channels.Count)
+                {
+                    if (count < channels.Count) channels.RemoveAt(channels.Count - 1);
+                    else channels.Add(new channel(channels.Count + 1, colors[colorCount++]));
+                    if(colorCount == colors.Length) colorCount = 0;
+                }
+                foreach(var ch in channels)
+                {
+                    ch.Line();
+                    ch.drawingchannel();
+                }
 
-                ReceivedData.Split('\t'); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
 
                 /*//parsing the string to double (we expect numbers from the Arduino)
                 Double.TryParse(split[0], out _split1);
