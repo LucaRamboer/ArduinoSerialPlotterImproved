@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace WPFCharting
 {
@@ -11,7 +14,7 @@ namespace WPFCharting
     {
         private int index;
         private SolidColorBrush color = Brushes.Blue;
-        private int count;
+        private Polyline chartPolyline;
         private int offset;
         public int metingen = 50;
 
@@ -22,7 +25,7 @@ namespace WPFCharting
         public channel(int index, SolidColorBrush color)
         {
             this.index = index;
-            //this.color = color;
+            this.color = color;
         }
 
         public void Sizing(int verzetting)
@@ -56,11 +59,21 @@ namespace WPFCharting
             {
                 Serie[i] = Serie[i + 1];
             }
-            Serie[metingen - 1] = Double.Parse(MainWindow.split[index - 1]);
+            Double.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
         }
 
-        public void drawingchannel () { 
-            
+        public void drawingchannel (Canvas chart) {
+            chart.Children.Remove(chartPolyline);
+            chartPolyline = new Polyline()
+            {
+                Stroke = color,
+                StrokeThickness = 5,
+            };
+            chart.Children.Add(chartPolyline);
+            for(int i = 0; i < metingen;i++)
+            {
+                chartPolyline.Points.Add(new System.Windows.Point(i * MainWindow.interval, Serie[i]));
+            }
         }
     }
 }

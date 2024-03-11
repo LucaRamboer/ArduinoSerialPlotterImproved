@@ -26,8 +26,8 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         private Line xAxisLine, yAxisLine;
-        private double xAxisStart = 140, yAxisStart = 100, interval = 50;
-        private int counter;
+        private double xAxisStart = 140, yAxisStart = 100;
+        public static double interval { get; } = 50;
         private int count;
         private int colorCount;
         private string ReceivedData;
@@ -277,23 +277,9 @@ namespace WPFCharting
                 foreach(var ch in channels)
                 {
                     ch.Line();
-                    ch.drawingchannel();
+                    ch.drawingchannel(chartCanvas);
                 }
-
-
-                /*//parsing the string to double (we expect numbers from the Arduino)
-                Double.TryParse(split[0], out _split1);
-                Double.TryParse(split[1], out _split2);
-                Double.TryParse(split[2], out _split3);
-
-                //the ith element of the Split array will be the recently parsed _split.
-                timeAxis.Enqueue(_split1);
-
-                //plot
-                DataChart.Series["Channel1"].Points.AddXY(Split1[counter], Split2[counter]); //col1 , col2
-                DataChart.Series["Channel2"].Points.AddXY(Split1[counter], Split3[counter]); //col1 , col3
-                DataChart.ChartAreas[0].RecalculateAxesScale(); //recalculate.rescale
-
+                /*
                 //handle the output
                 foutput = _split1.ToString() + "\t" + _split2.ToString() + "\t" + _split3.ToString() + Environment.NewLine;
                 //we put together the variables into a string (foutput) again
@@ -307,13 +293,7 @@ namespace WPFCharting
                 }
                 */
             }
-            catch { }
-
-            counter++;
-            //the value of the counter is increased by one at each loop (at each new data)
-            //this makes sure that the next series of data is written in the next line of the arrays
-
-            
+            catch { }   
         }
     }
 
