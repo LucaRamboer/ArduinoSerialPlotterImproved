@@ -17,26 +17,36 @@ namespace WPFCharting
         private SolidColorBrush color = Brushes.Blue;
         private Polyline chartPolyline;
         private int offset;
+        int i, Size;
         public int metingen = 50;
+        private double height, width;
 
-        private double[] temp = null;
+        private int[] temp = null;
 
-        public double[] Serie = new double[50];
+        public int[] Serie = new int[50];
 
-        public channel(int index, SolidColorBrush color)
+        public channel(int index, SolidColorBrush color, double height, double width)
         {
             this.index = index;
             this.color = color;
+            this.height = height - MainWindow.yAxisStart;
+            this.width = width - 70;
+        }
+
+        public void setOrigin (double height, double width)
+        {
+            this.height = height - MainWindow.yAxisStart;
+            this.width = width - 70;
         }
 
         public void Sizing(int verzetting)
         {
-            int Size = metingen;
+            Size = metingen;
             metingen = verzetting;
             if (Size < metingen)
             {
-                temp = new double[metingen]; //maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
-                for (int i = 0; i < Size; i++)
+                temp = new int[metingen]; //maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
+                for (i = 0; i < Size; i++)
                 {
                     temp[i] = Serie[i];
                 }
@@ -44,8 +54,8 @@ namespace WPFCharting
             else if (Size > metingen)
             {
                 offset = Size - metingen - 1;
-                temp = new double[metingen];
-                for (int i = 0; i < metingen - 1; i++)
+                temp = new int[metingen];
+                for (i = 0; i < metingen - 1; i++)
                 {
                     temp[i] = Serie[i + offset];
                 };
@@ -56,11 +66,11 @@ namespace WPFCharting
 
         public void Line()
         {
-            for (int i = 0; i < metingen - 1; i++)
+            for (i = 0; i < metingen - 1; i++)
             {
                 Serie[i] = Serie[i + 1];
             }
-            Double.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
+            Int32.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
         }
 
         public void drawingchannel (Canvas chart) {
@@ -71,10 +81,11 @@ namespace WPFCharting
                 StrokeThickness = 2,
             };
             chart.Children.Add(chartPolyline);
-            for(int i = 0; i < metingen;i++)
+            for (i = 0; i < metingen;i++)
             {
-                point.X += i * MainWindow.interval;
-                point.Y += Serie[i];
+                point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
+                point.Y = height - Serie[i];
+                if (point.X > width) break;
                 chartPolyline.Points.Add(point);
             }
         }

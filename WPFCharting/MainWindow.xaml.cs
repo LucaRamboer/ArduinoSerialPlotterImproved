@@ -17,6 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Text.RegularExpressions;
 
 namespace WPFCharting
 {
@@ -27,12 +28,14 @@ namespace WPFCharting
     {
         private Line xAxisLine, yAxisLine;
         public static double xAxisStart = 140, yAxisStart = 100;
-        public static double interval { get; } = 50;
+        public static double xinterval { get; set; } = 50;
+        public static double yinterval { get; set; } = 50;
         private int count;
         private int colorCount;
         private string ReceivedData;
         private Polyline chartPolyline;
         private SerialPort SerPort;
+        Regex regex = new Regex("[^0-9]+");
 
         private Point origin;
         public static string[] split = new string[] { };
@@ -64,11 +67,26 @@ namespace WPFCharting
             connectButton.Click += (sender, e) => {
                 connect();
             };
+            refreshButton.Click += (sender, e) =>
+            {
+                FetchAvailablePorts();
+            };
+            metingenBox.TextChanged += (sender, e) =>
+            {
+                try { 
+                foreach (var channel in channels)
+                {
+                    channel.Sizing(Int32.Parse(metingenBox.Text));
+                }
+                run();
+            } catch{ }
+            };
         }
 
         void FetchAvailablePorts()
         {
             String[] ports = SerialPort.GetPortNames(); //We get the available COM ports
+            Portsbox.Items.Clear();
             foreach (var port in ports)
             {
                 Portsbox.Items.Add(port);
@@ -98,15 +116,31 @@ namespace WPFCharting
             }
         }
 
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = regex.IsMatch(e.Text);
+        }
+
         private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            ReceivedData = SerPort.ReadLine(); //read the line from the serial port
-
+            try
+            {
+                ReceivedData = SerPort.ReadLine(); //read the line from the serial port
+            } catch { };
             Dispatcher.Invoke(new Action(ProcessingData)); //at each received line from serial port we "trigger" a new processingdata delegate
         }
 
         private void run()
         {
+            try
+            {
+                xinterval = (this.ActualWidth - xAxisStart - 70) / Double.Parse(metingenBox.Text);
+            }
+            catch { }
+            foreach(var channel in channels)
+            {
+                channel.setOrigin(this.ActualHeight, this.ActualWidth);
+            }
             chartCanvas.Children.Clear();
             xAxisLine = new Line()
             {
@@ -134,14 +168,9 @@ namespace WPFCharting
 
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
 
-            var xTextBlock0 = new TextBlock() { Text = $"{0}" };
-            chartCanvas.Children.Add(xTextBlock0);
-            Canvas.SetLeft(xTextBlock0, origin.X);
-            Canvas.SetTop(xTextBlock0, origin.Y + 5);
-
             // y axis lines
-            var xValue = interval;
-            double xPoint = origin.X + interval;
+            var xValue = xinterval;
+            double xPoint = origin.X + xinterval;
             while (xPoint < xAxisLine.X2)
             {
                 var line = new Line()
@@ -158,14 +187,8 @@ namespace WPFCharting
                 if (line.Y2 < line.Y1) line.Y2 = line.Y1;
                 chartCanvas.Children.Add(line);
 
-                var textBlock = new TextBlock { Text = $"{xValue}", };
-
-                chartCanvas.Children.Add(textBlock);
-                Canvas.SetLeft(textBlock, xPoint - 12.5);
-                Canvas.SetTop(textBlock, line.Y2 + 5);
-
-                xPoint += interval;
-                xValue += interval;
+                xPoint += xinterval;
+                xValue += xinterval;
             }
 
 
@@ -176,7 +199,7 @@ namespace WPFCharting
 
             // x axis lines
             var yValue = yAxisStart;
-            double yPoint = origin.Y - interval;
+            double yPoint = origin.Y - yinterval;
             while (yPoint > yAxisLine.Y1)
             {
                 var line = new Line()
@@ -198,66 +221,9 @@ namespace WPFCharting
                 Canvas.SetLeft(textBlock, line.X1 - 30);
                 Canvas.SetTop(textBlock, yPoint - 10);
 
-                yPoint -= interval;
-                yValue += interval;
+                yPoint -= yinterval;
+                yValue += yinterval;
             }
-            /*double x = 0, y = 0;
-            xPoint = origin.X;
-            yPoint = origin.Y;
-            while (xPoint < xAxisLine.X2)
-            {
-                while (yPoint > yAxisLine.Y1)
-                {
-                    var holder = new Holder()
-                    {
-                        X = x,
-                        Y = y,
-                        Point = new Point(xPoint, yPoint),
-                    };
-
-                    holders.Add(holder);
-
-                    yPoint -= interval;
-                    y += interval;
-                }
-
-                xPoint += interval;
-                yPoint = origin.Y;
-                x += 100;
-                y = 0;
-            }
-
-            // polyline
-            chartPolyline = new Polyline()
-            {
-                Stroke = new SolidColorBrush(Color.FromRgb(68, 114, 196)),
-                StrokeThickness = 5,
-            };
-            chartCanvas.Children.Add(chartPolyline);
-
-            // showing where are the connections points
-            foreach (var holder in holders)
-            {
-                Ellipse oEllipse = new Ellipse()
-                {
-                    Fill = Brushes.Red,
-                    Width = 10,
-                    Height = 10,
-                    Opacity = 0,
-                };
-
-                chartCanvas.Children.Add(oEllipse);
-                Canvas.SetLeft(oEllipse, holder.Point.X - 5);
-                Canvas.SetTop(oEllipse, holder.Point.Y - 5);
-            }
-
-            // add connection points to polyline
-            foreach (var value in values)
-            {
-                var holder = holders.FirstOrDefault(h => h.X == value.X && h.Y == value.Y);
-                if (holder != null)
-                    chartPolyline.Points.Add(holder.Point);
-            }*/
         }
 
         private void ProcessingData() //processing received data and plotting it on a chart
@@ -265,13 +231,13 @@ namespace WPFCharting
 
             try
             {
-                split = ReceivedData.Split('/'); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
+                split = ReceivedData.Trim().Split(','); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
                 count = split.Length;
                 
                 while(count != channels.Count)
                 {
                     if (count < channels.Count) channels.RemoveAt(channels.Count - 1);
-                    else channels.Add(new channel(channels.Count + 1, colors[colorCount++]));
+                    else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
                     if(colorCount == colors.Length) colorCount = 0;
                 }
                 foreach(var ch in channels)

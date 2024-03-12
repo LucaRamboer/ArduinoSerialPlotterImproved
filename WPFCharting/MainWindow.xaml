@@ -13,11 +13,18 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Canvas x:Name="chartCanvas"
             Background="White">
         </Canvas>
         <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="0"/>
         <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="1"/>
+        <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="2"/>
+        <Label Content="Metingen:" Grid.Row="3"/>
+        <TextBox  Name="metingenBox" Height="20" Grid.Row="4" Text="50" Width="100" MaxLength="4" PreviewTextInput="NumberValidationTextBox"/>
     </Grid>
 </Window>
