@@ -13,6 +13,7 @@ namespace WPFCharting
     public class channel
     {
         private int index;
+        private System.Windows.Point point = new System.Windows.Point(MainWindow.xAxisStart, MainWindow.yAxisStart);
         private SolidColorBrush color = Brushes.Blue;
         private Polyline chartPolyline;
         private int offset;
@@ -72,7 +73,9 @@ namespace WPFCharting
             chart.Children.Add(chartPolyline);
             for(int i = 0; i < metingen;i++)
             {
-                chartPolyline.Points.Add(new System.Windows.Point(i * MainWindow.interval, Serie[i]));
+                point.X += i * MainWindow.interval;
+                point.Y += Serie[i];
+                chartPolyline.Points.Add(point);
             }
         }
     }

@@ -26,7 +26,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         private Line xAxisLine, yAxisLine;
-        private double xAxisStart = 140, yAxisStart = 100;
+        public static double xAxisStart = 140, yAxisStart = 100;
         public static double interval { get; } = 50;
         private int count;
         private int colorCount;
