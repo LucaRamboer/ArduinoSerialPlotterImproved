@@ -26,19 +26,23 @@ namespace WPFCharting
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Line xAxisLine, yAxisLine;
+        private Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 140, yAxisStart = 100;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
+
+        double yPoint, xPoint, yValue, xValue;
         private int count;
         private int colorCount;
         private string ReceivedData;
         private Polyline chartPolyline;
         private SerialPort SerPort;
         Regex regex = new Regex("[^0-9]+");
+        TextBlock yTextBlock0, textBlock;
 
         private Point origin;
         public static string[] split = new string[] { };
+        String[] ports;
         private List<Holder> holders;
         private List<Value> values;
         private List<channel> channels = new List<channel>();
@@ -85,7 +89,7 @@ namespace WPFCharting
 
         void FetchAvailablePorts()
         {
-            String[] ports = SerialPort.GetPortNames(); //We get the available COM ports
+            ports = SerialPort.GetPortNames(); //We get the available COM ports
             Portsbox.Items.Clear();
             foreach (var port in ports)
             {
@@ -135,6 +139,7 @@ namespace WPFCharting
             try
             {
                 xinterval = (this.ActualWidth - xAxisStart - 70) / Double.Parse(metingenBox.Text);
+                if(xinterval < 0) xinterval = 0;
             }
             catch { }
             foreach(var channel in channels)
@@ -169,11 +174,11 @@ namespace WPFCharting
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
 
             // y axis lines
-            var xValue = xinterval;
-            double xPoint = origin.X + xinterval;
+            xValue = xinterval;
+            xPoint = origin.X + xinterval;
             while (xPoint < xAxisLine.X2)
             {
-                var line = new Line()
+                line = new Line()
                 {
                     X1 = xPoint,
                     Y1 = yAxisStart - 50,
@@ -192,17 +197,17 @@ namespace WPFCharting
             }
 
 
-            var yTextBlock0 = new TextBlock() { Text = $"{0}" };
+            yTextBlock0 = new TextBlock() { Text = $"{0}" };
             chartCanvas.Children.Add(yTextBlock0);
             Canvas.SetLeft(yTextBlock0, origin.X - 20);
             Canvas.SetTop(yTextBlock0, origin.Y - 10);
 
             // x axis lines
-            var yValue = yAxisStart;
-            double yPoint = origin.Y - yinterval;
+            yValue = yAxisStart;
+            yPoint = origin.Y - yinterval;
             while (yPoint > yAxisLine.Y1)
             {
-                var line = new Line()
+                line = new Line()
                 {
                     X1 = xAxisStart,
                     Y1 = yPoint,
@@ -216,7 +221,7 @@ namespace WPFCharting
                 if (line.X2 < line.X1) line.X2 = line.X1;
                 chartCanvas.Children.Add(line);
 
-                var textBlock = new TextBlock() { Text = $"{yValue}" };
+                textBlock = new TextBlock() { Text = $"{yValue}" };
                 chartCanvas.Children.Add(textBlock);
                 Canvas.SetLeft(textBlock, line.X1 - 30);
                 Canvas.SetTop(textBlock, yPoint - 10);
