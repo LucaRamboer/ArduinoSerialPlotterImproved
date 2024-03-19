@@ -8,23 +8,37 @@
         Title="MainWindow" Height="450" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="110"/>
+            <ColumnDefinition Width="35"/>
+            <ColumnDefinition Width="42"/>
+            <ColumnDefinition Width="40"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="26"/>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="30"/>
+            <RowDefinition Height="25"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="26"/>
+            <RowDefinition Height="23"/>
         </Grid.RowDefinitions>
         <Canvas x:Name="chartCanvas"
             Background="White">
         </Canvas>
-        <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="0"/>
-        <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="1"/>
-        <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="2"/>
-        <Label Content="Metingen:" Grid.Row="3"/>
-        <TextBox  Name="metingenBox" Height="20" Grid.Row="4" Text="50" Width="100" MaxLength="4" PreviewTextInput="NumberValidationTextBox"/>
+        <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="0" Grid.ColumnSpan="3"/>
+        <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="1" Grid.ColumnSpan="3"/>
+        <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="2" Grid.ColumnSpan="3"/>
+        <Label Content="Metingen:" Grid.Row="3" Grid.ColumnSpan="3"/>
+        <TextBox  Name="metingenBox" Height="20" Grid.Row="4" Text="50" Width="100" MaxLength="4" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="3"/>
+        <Label Content="y-axis scale:" Grid.Row="5" Grid.ColumnSpan="3" Height="26"/>
+        <Label Content="Max:" Grid.Row="6" Grid.Column="0"/>
+        <TextBox  Name="YMax" Height="20" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="50" Width="50" PreviewTextInput="NumberValidationTextBox"/>
+        <Label Content="Min:" Grid.Row="7" Grid.Column="0"/>
+        <TextBox  Name="YMin" Height="20" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Text="0" Width="50" PreviewTextInput="NumberValidationTextBox"/>
+        <CheckBox Name="scaleOverride" Content="scale override" Grid.Row="9" Grid.ColumnSpan="3" IsChecked="True"/>
+        <Label Content="segmenten:" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <TextBox  Name="ySeg" Height="20" Grid.Row="8" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
     </Grid>
 </Window>

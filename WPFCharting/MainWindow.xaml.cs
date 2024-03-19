@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
+using System.Linq.Expressions;
 
 namespace WPFCharting
 {
@@ -27,10 +28,12 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         private Line xAxisLine, yAxisLine, line;
-        public static double xAxisStart = 140, yAxisStart = 100;
+        public static double xAxisStart = 150, yAxisStart = 100;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
-
+        public double yPointInterval;
+        public int ysegments = 10;
+        double ystart = 0, ystop = 50;
         double yPoint, xPoint, yValue, xValue;
         private int count;
         private int colorCount;
@@ -54,36 +57,84 @@ namespace WPFCharting
             Brushes.Magenta,
             Brushes.Yellow,
             Brushes.DarkGreen
-        }; 
+        };
 
         public MainWindow()
         {
             InitializeComponent();
             holders = new List<Holder>();
-            this.StateChanged += (sender, e) => {
+            this.StateChanged += (sender, e) =>
+            {
                 run();
             };
 
-            this.SizeChanged += (sender, e) => {
+            this.SizeChanged += (sender, e) =>
+            {
                 run();
             };
             FetchAvailablePorts();
-            connectButton.Click += (sender, e) => {
+            connectButton.Click += (sender, e) =>
+            {
                 connect();
             };
             refreshButton.Click += (sender, e) =>
             {
                 FetchAvailablePorts();
             };
+
             metingenBox.TextChanged += (sender, e) =>
             {
-                try { 
-                foreach (var channel in channels)
+                try
                 {
-                    channel.Sizing(Int32.Parse(metingenBox.Text));
+                    foreach (var channel in channels)
+                    {
+                        channel.Sizing(Int32.Parse(metingenBox.Text));
+                    }
+                    run();
                 }
+                catch { }
+            };
+
+            YMax.TextChanged += (sender, e) =>
+            {
+                if (scaleOverride.IsChecked == true)
+                {
+                    try
+                    {
+                        ystop = Double.Parse(YMax.Text);
+                        run();
+                    }
+                    catch { }
+                }
+            };
+
+            YMin.TextChanged += (sender, e) =>
+            {
+                try
+                {
+                    if (scaleOverride.IsChecked == true)
+                    {
+                        ystart = Double.Parse(YMin.Text);
+                        run();
+                    }
+                }
+                catch { }
+            };
+
+            scaleOverride.Checked += (sender, e) =>
+            {
+                ystop = Double.Parse(YMax.Text);
+                ystart = Double.Parse(YMin.Text);
                 run();
-            } catch{ }
+            };
+
+            ySeg.TextChanged += (sender, e) =>
+            {
+                try {
+                    ysegments = Int32.Parse(ySeg.Text);
+                    run();
+                } catch { }
+                
             };
         }
 
@@ -120,7 +171,7 @@ namespace WPFCharting
             }
         }
 
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
+        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e) //Zorgt er voor dat enkel nummers in de textbox gezet kunnen worden
         {
             e.Handled = regex.IsMatch(e.Text);
         }
@@ -139,10 +190,11 @@ namespace WPFCharting
             try
             {
                 xinterval = (this.ActualWidth - xAxisStart - 70) / Double.Parse(metingenBox.Text);
-                if(xinterval < 0) xinterval = 0;
+                if (xinterval < 0) xinterval = 0;
             }
             catch { }
-            foreach(var channel in channels)
+
+            foreach (var channel in channels)
             {
                 channel.setOrigin(this.ActualHeight, this.ActualWidth);
             }
@@ -172,8 +224,12 @@ namespace WPFCharting
             chartCanvas.Children.Add(yAxisLine);
 
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
-
-            // y axis lines
+            xrun();
+            yrun();
+        }
+        private void xrun()
+        {
+            // x axis lines
             xValue = xinterval;
             xPoint = origin.X + xinterval;
             while (xPoint < xAxisLine.X2)
@@ -195,28 +251,37 @@ namespace WPFCharting
                 xPoint += xinterval;
                 xValue += xinterval;
             }
+        }
+
+        // y axis lines
+        private void yrun() {
+           
+            yPointInterval = (yAxisLine.Y2 - yAxisLine.Y1 - 1) / ysegments;
+            if (yPointInterval < 1) yPointInterval = 1;
+            yinterval = (ystop - ystart) / ysegments;
+            if (yinterval == 0) { ysegments = 0; ySeg.Text = "0"; }
 
 
-            yTextBlock0 = new TextBlock() { Text = $"{0}" };
+            yValue = ystart + yinterval;
+            yPoint = origin.Y - yPointInterval;
+
+            yTextBlock0 = new TextBlock() { Text = $"{ystart}" };
             chartCanvas.Children.Add(yTextBlock0);
-            Canvas.SetLeft(yTextBlock0, origin.X - 20);
+            Canvas.SetLeft(yTextBlock0, origin.X - 30);
             Canvas.SetTop(yTextBlock0, origin.Y - 10);
 
-            // x axis lines
-            yValue = yAxisStart;
-            yPoint = origin.Y - yinterval;
             while (yPoint > yAxisLine.Y1)
-            {
-                line = new Line()
                 {
-                    X1 = xAxisStart,
-                    Y1 = yPoint,
-                    X2 = this.ActualWidth - 70,
-                    Y2 = yPoint,
-                    Stroke = Brushes.LightGray,
-                    StrokeThickness = 1,
-                    Opacity = 1,
-                };
+                    line = new Line()
+                    {
+                        X1 = xAxisStart,
+                        Y1 = yPoint,
+                        X2 = this.ActualWidth - 70,
+                        Y2 = yPoint,
+                        Stroke = Brushes.LightGray,
+                        StrokeThickness = 1,
+                        Opacity = 1,
+                    };
 
                 if (line.X2 < line.X1) line.X2 = line.X1;
                 chartCanvas.Children.Add(line);
@@ -226,7 +291,7 @@ namespace WPFCharting
                 Canvas.SetLeft(textBlock, line.X1 - 30);
                 Canvas.SetTop(textBlock, yPoint - 10);
 
-                yPoint -= yinterval;
+                yPoint -= yPointInterval;
                 yValue += yinterval;
             }
         }
@@ -245,11 +310,18 @@ namespace WPFCharting
                     else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
                     if(colorCount == colors.Length) colorCount = 0;
                 }
-                foreach(var ch in channels)
+
+                if (scaleOverride.IsChecked == false)
+                {
+                    yaxisScaling();
+                }
+
+                foreach (var ch in channels)
                 {
                     ch.Line();
                     ch.drawingchannel(chartCanvas);
                 }
+                
                 /*
                 //handle the output
                 foutput = _split1.ToString() + "\t" + _split2.ToString() + "\t" + _split3.ToString() + Environment.NewLine;
@@ -265,6 +337,11 @@ namespace WPFCharting
                 */
             }
             catch { }   
+        }
+
+        private void yaxisScaling ()
+        {
+
         }
     }
 
