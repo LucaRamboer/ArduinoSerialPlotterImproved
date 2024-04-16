@@ -27,17 +27,20 @@ namespace WPFCharting
     /// </summary>
     public partial class MainWindow : Window
     {
+        int i;
         private Line xAxisLine, yAxisLine, line;
-        public static double xAxisStart = 150, yAxisStart = 100;
+        public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
         public double yPointInterval;
         public int ysegments = 10;
         double ystart = 0, ystop = 50;
         double yPoint, xPoint, yValue, xValue;
+        public static double yscale;
         private int count;
         private int colorCount;
         private string ReceivedData;
+        public string data;
         private Polyline chartPolyline;
         private SerialPort SerPort;
         Regex regex = new Regex("[^0-9]+");
@@ -67,7 +70,7 @@ namespace WPFCharting
             {
                 run();
             };
-
+            
             this.SizeChanged += (sender, e) =>
             {
                 run();
@@ -135,6 +138,14 @@ namespace WPFCharting
                     run();
                 } catch { }
                 
+            };
+
+            senderBox.KeyDown += (sender, e) =>
+            {
+                if (e.Key == Key.Enter) { 
+                    sendData();
+                    senderBox.Clear();
+                }
             };
         }
 
@@ -211,7 +222,7 @@ namespace WPFCharting
             yAxisLine = new Line()
             {
                 X1 = xAxisStart,
-                Y1 = yAxisStart - 50,
+                Y1 = yAxisStop,
                 X2 = xAxisStart,
                 Y2 = this.ActualHeight - yAxisStart,
                 Stroke = Brushes.LightGray,
@@ -237,7 +248,7 @@ namespace WPFCharting
                 line = new Line()
                 {
                     X1 = xPoint,
-                    Y1 = yAxisStart - 50,
+                    Y1 = yAxisLine.Y1,
                     X2 = xPoint,
                     Y2 = this.ActualHeight - yAxisStart,
                     Stroke = Brushes.LightGray,
@@ -260,6 +271,7 @@ namespace WPFCharting
             if (yPointInterval < 1) yPointInterval = 1;
             yinterval = (ystop - ystart) / ysegments;
             if (yinterval == 0) { ysegments = 0; ySeg.Text = "0"; }
+            yscale = (yAxisLine.Y2 - yAxisLine.Y1) / (ystop - ystart);
 
 
             yValue = ystart + yinterval;
@@ -303,6 +315,7 @@ namespace WPFCharting
             {
                 split = ReceivedData.Trim().Split(','); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
                 count = split.Length;
+                data = "\n";
                 
                 while(count != channels.Count)
                 {
@@ -321,20 +334,13 @@ namespace WPFCharting
                     ch.Line();
                     ch.drawingchannel(chartCanvas);
                 }
-                
-                /*
-                //handle the output
-                foutput = _split1.ToString() + "\t" + _split2.ToString() + "\t" + _split3.ToString() + Environment.NewLine;
-                //we put together the variables into a string (foutput) again
-
-                if (FileSavingCheckBox.Checked == true) //file saving, same folder as executable
+                for(i = 0; i < count; i++)
                 {
-                    using (StreamWriter sw = File.AppendText("Outputfile.txt"))//appendtext = the previous file will be continued
-                    {
-                        sw.Write(foutput); //write the content of foutput into the file
-                    }
+                    data += $"{split[i]}, ";
+          
                 }
-                */
+                TextOut.Text += data;
+                if(autoscroll.IsChecked== true) textScrol.ScrollToBottom();
             }
             catch { }   
         }
@@ -343,6 +349,8 @@ namespace WPFCharting
         {
 
         }
+
+        private void sendData() { }
     }
 
 

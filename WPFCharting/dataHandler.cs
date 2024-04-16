@@ -84,7 +84,7 @@ namespace WPFCharting
             for (i = 0; i < metingen;i++)
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
-                point.Y = height - Serie[i];
+                point.Y = height - Serie[i] * MainWindow.yscale;
                 if (point.X > width) break;
                 chartPolyline.Points.Add(point);
             }

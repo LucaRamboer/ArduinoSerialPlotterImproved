@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WPFCharting"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="550" Width="800">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="35"/>
             <ColumnDefinition Width="42"/>
             <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -23,6 +24,7 @@
             <RowDefinition Height="26"/>
             <RowDefinition Height="26"/>
             <RowDefinition Height="23"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Canvas x:Name="chartCanvas"
             Background="White">
@@ -40,5 +42,10 @@
         <CheckBox Name="scaleOverride" Content="scale override" Grid.Row="9" Grid.ColumnSpan="3" IsChecked="True"/>
         <Label Content="segmenten:" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"/>
         <TextBox  Name="ySeg" Height="20" Grid.Row="8" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
+        <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
+        <ScrollViewer Name="textScrol" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Grid.Row="11" MaxHeight="180" Height="180" Margin="100, 0, 0, 20">
+            <TextBlock Name="TextOut" TextWrapping="Wrap"/>
+        </ScrollViewer>
+        <TextBox Name="senderBox" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Height="20" Margin="100,0,0,0"/>
     </Grid>
 </Window>
