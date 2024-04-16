@@ -17,13 +17,14 @@ namespace WPFCharting
         private SolidColorBrush color = Brushes.Blue;
         private Polyline chartPolyline;
         private int offset;
+        private double deltaValue;
         int i, Size;
         public int metingen = 50;
         private double height, width;
 
-        private int[] temp = null;
+        private double[] temp = null;
 
-        public int[] Serie = new int[50];
+        public double[] Serie = new double[50];
 
         public channel(int index, SolidColorBrush color, double height, double width)
         {
@@ -45,7 +46,7 @@ namespace WPFCharting
             metingen = verzetting;
             if (Size < metingen)
             {
-                temp = new int[metingen]; //maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
+                temp = new double[metingen]; //maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
                 for (i = 0; i < Size; i++)
                 {
                     temp[i] = Serie[i];
@@ -54,7 +55,7 @@ namespace WPFCharting
             else if (Size > metingen)
             {
                 offset = Size - metingen - 1;
-                temp = new int[metingen];
+                temp = new double[metingen];
                 for (i = 0; i < metingen - 1; i++)
                 {
                     temp[i] = Serie[i + offset];
@@ -70,7 +71,8 @@ namespace WPFCharting
             {
                 Serie[i] = Serie[i + 1];
             }
-            Int32.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
+            MainWindow.split[index - 1] = MainWindow.split[index - 1].Replace('.', ',');
+            Double.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
         }
 
         public void drawingchannel (Canvas chart) {
@@ -81,10 +83,12 @@ namespace WPFCharting
                 StrokeThickness = 2,
             };
             chart.Children.Add(chartPolyline);
-            for (i = 0; i < metingen;i++)
+            for (i = 0; i < metingen; i++)
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
-                point.Y = height - Serie[i] * MainWindow.yscale;
+                deltaValue = Serie[i] - MainWindow.ystart;
+                if (deltaValue < 0) point.Y = MainWindow.yAxisLine.Y2 + 10;
+                else point.Y = height - (deltaValue * MainWindow.yscale);
                 if (point.X > width) break;
                 chartPolyline.Points.Add(point);
             }

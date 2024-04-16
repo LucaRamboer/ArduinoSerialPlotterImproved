@@ -28,35 +28,36 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private Line xAxisLine, yAxisLine, line;
+        public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
         public double yPointInterval;
         public int ysegments = 10;
-        double ystart = 0, ystop = 50;
+        public static double ystart = 0, ystop = 50;
         double yPoint, xPoint, yValue, xValue;
         public static double yscale;
         private int count;
         private int colorCount;
+        private int textOutLines, metingen = 50;
         private string ReceivedData;
         public string data;
+        private string tempS;
         private Polyline chartPolyline;
         private SerialPort SerPort;
+        Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
         Regex regex = new Regex("[^0-9]+");
         TextBlock yTextBlock0, textBlock;
-
+        TextBox box;
         private Point origin;
         public static string[] split = new string[] { };
         String[] ports;
-        private List<Holder> holders;
-        private List<Value> values;
         private List<channel> channels = new List<channel>();
         private SolidColorBrush[] colors = new SolidColorBrush[] {
             Brushes.Blue,
             Brushes.Brown,
             Brushes.Red,
-            Brushes.Green,
+            Brushes.Green, 
             Brushes.Magenta,
             Brushes.Yellow,
             Brushes.DarkGreen
@@ -65,7 +66,6 @@ namespace WPFCharting
         public MainWindow()
         {
             InitializeComponent();
-            holders = new List<Holder>();
             this.StateChanged += (sender, e) =>
             {
                 run();
@@ -89,9 +89,10 @@ namespace WPFCharting
             {
                 try
                 {
+                    metingen = Int32.Parse(metingenBox.Text);
                     foreach (var channel in channels)
                     {
-                        channel.Sizing(Int32.Parse(metingenBox.Text));
+                        channel.Sizing(metingen);
                     }
                     run();
                 }
@@ -187,7 +188,13 @@ namespace WPFCharting
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void NumberValidationTextBoxNegatif(object sender, TextCompositionEventArgs e) //Zorgt er voor dat enkel nummers in de textbox gezet kunnen worden maar ook negatieve
+        {
+            box = (TextBox)sender;
+            e.Handled = !regexN.IsMatch(box.Text.Insert(box.CaretIndex, e.Text));
+        }
+
+            private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
@@ -340,6 +347,11 @@ namespace WPFCharting
           
                 }
                 TextOut.Text += data;
+                textOutLines++;
+                while (textOutLines >= metingen) {
+                    TextOut.Text = TextOut.Text.Remove(0, TextOut.Text.IndexOf("\n") + 1);
+                    textOutLines--;
+                }
                 if(autoscroll.IsChecked== true) textScrol.ScrollToBottom();
             }
             catch { }   
@@ -350,7 +362,9 @@ namespace WPFCharting
 
         }
 
-        private void sendData() { }
+        private void sendData() {
+        
+        }
     }
 
 
