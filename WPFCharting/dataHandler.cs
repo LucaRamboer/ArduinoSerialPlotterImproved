@@ -87,11 +87,17 @@ namespace WPFCharting
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
                 deltaValue = Serie[i] - MainWindow.ystart;
-                if (deltaValue < 0) point.Y = MainWindow.yAxisLine.Y2 + 10;
+                if (deltaValue < 0) point.Y = MainWindow.yAxisLine.Y2 + 5;
                 else point.Y = height - (deltaValue * MainWindow.yscale);
                 if (point.X > width) break;
                 chartPolyline.Points.Add(point);
             }
+        }
+
+        public void remove()
+        {
+            chartPolyline.Points.Clear();
+            chartPolyline = null;
         }
     }
 }

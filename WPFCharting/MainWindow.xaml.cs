@@ -47,6 +47,7 @@ namespace WPFCharting
         private SerialPort SerPort;
         Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
         Regex regex = new Regex("[^0-9]+");
+        Regex regexIn = new Regex("[0-9.]+");
         TextBlock yTextBlock0, textBlock;
         TextBox box;
         private Point origin;
@@ -244,6 +245,7 @@ namespace WPFCharting
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
             xrun();
             yrun();
+            foreach (var ch in channels) ch.drawingchannel(chartCanvas);
         }
         private void xrun()
         {
@@ -323,36 +325,47 @@ namespace WPFCharting
                 split = ReceivedData.Trim().Split(','); //split the data separated by tabs; split[3] -> split[col1], split[col2], split[col3]; split[i]
                 count = split.Length;
                 data = "\n";
-                
-                while(count != channels.Count)
+                if (regexIn.IsMatch(split[0]))
                 {
-                    if (count < channels.Count) channels.RemoveAt(channels.Count - 1);
-                    else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
-                    if(colorCount == colors.Length) colorCount = 0;
-                }
 
-                if (scaleOverride.IsChecked == false)
-                {
-                    yaxisScaling();
-                }
+                    while (count != channels.Count)
+                    {
+                        if (count < channels.Count)
+                        {
+                            channels[channels.Count - 1].remove();
+                            channels.RemoveAt(channels.Count - 1);
+                        }
+                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
+                        if (colorCount == colors.Length) colorCount = 0;
+                    }
 
-                foreach (var ch in channels)
+                    if (scaleOverride.IsChecked == false)
+                    {
+                        yaxisScaling();
+                    }
+
+                    foreach (var ch in channels)
+                    {
+                        ch.Line();
+                        ch.drawingchannel(chartCanvas);
+                    }
+                    for (i = 0; i < count; i++)
+                    {
+                        data += $"{split[i]}, ";
+
+                    }
+                    TextOut.Text += data;
+                    textOutLines++;
+                    while (textOutLines >= metingen)
+                    {
+                        TextOut.Text = TextOut.Text.Remove(0, TextOut.Text.IndexOf("\n") + 1);
+                        textOutLines--;
+                    }
+                } else
                 {
-                    ch.Line();
-                    ch.drawingchannel(chartCanvas);
+                    TextOut.Text += "\n" + ReceivedData.Remove(ReceivedData.Length - 1);
                 }
-                for(i = 0; i < count; i++)
-                {
-                    data += $"{split[i]}, ";
-          
-                }
-                TextOut.Text += data;
-                textOutLines++;
-                while (textOutLines >= metingen) {
-                    TextOut.Text = TextOut.Text.Remove(0, TextOut.Text.IndexOf("\n") + 1);
-                    textOutLines--;
-                }
-                if(autoscroll.IsChecked== true) textScrol.ScrollToBottom();
+                if (autoscroll.IsChecked == true) textScrol.ScrollToBottom();
             }
             catch { }   
         }
@@ -363,7 +376,10 @@ namespace WPFCharting
         }
 
         private void sendData() {
-        
+            try
+            {
+                SerPort.WriteLine(senderBox.Text);
+            } catch { }
         }
     }
 
