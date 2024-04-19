@@ -19,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
+using System.Windows.Media.Animation;
 
 namespace WPFCharting
 {
@@ -28,6 +29,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
+        private bool scaleChanging;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
@@ -35,8 +37,10 @@ namespace WPFCharting
         public double yPointInterval;
         public int ysegments = 10;
         public static double ystart = 0, ystop = 50;
-        double yPoint, xPoint, yValue, xValue;
+        public double yboxMin = 0, yboxMax = 50;
+        double yPoint, xPoint, yValue, xValue, yMax, yMin, MaxIndex, MinIndex;
         public static double yscale;
+        private double tempD;
         private int count;
         private int colorCount;
         private int textOutLines, metingen = 50;
@@ -102,24 +106,26 @@ namespace WPFCharting
 
             YMax.TextChanged += (sender, e) =>
             {
-                if (scaleOverride.IsChecked == true)
+                try
                 {
-                    try
+                    yboxMax = Double.Parse(YMax.Text);
+                    if (scaleOverride.IsChecked == true)
                     {
-                        ystop = Double.Parse(YMax.Text);
+                        ystop = yboxMax;
                         run();
                     }
-                    catch { }
                 }
+                catch { }
             };
 
             YMin.TextChanged += (sender, e) =>
             {
                 try
                 {
+                    yboxMin = Double.Parse(YMin.Text);
                     if (scaleOverride.IsChecked == true)
                     {
-                        ystart = Double.Parse(YMin.Text);
+                        ystart = yboxMin;
                         run();
                     }
                 }
@@ -128,9 +134,13 @@ namespace WPFCharting
 
             scaleOverride.Checked += (sender, e) =>
             {
-                ystop = Double.Parse(YMax.Text);
-                ystart = Double.Parse(YMin.Text);
+                ystop = yboxMax;
+                ystart = yboxMin;
                 run();
+            };
+
+            scaleOverride.Unchecked += (sender, e) => {
+                findLimits();
             };
 
             ySeg.TextChanged += (sender, e) =>
@@ -327,7 +337,7 @@ namespace WPFCharting
                 data = "\n";
                 if (regexIn.IsMatch(split[0]))
                 {
-
+                    for(i = 0; i < count; i++) { split[i] = split[i].Replace('.', ','); }
                     while (count != channels.Count)
                     {
                         if (count < channels.Count)
@@ -339,21 +349,55 @@ namespace WPFCharting
                         if (colorCount == colors.Length) colorCount = 0;
                     }
 
-                    if (scaleOverride.IsChecked == false)
-                    {
-                        yaxisScaling();
-                    }
-
                     foreach (var ch in channels)
                     {
                         ch.Line();
                         ch.drawingchannel(chartCanvas);
                     }
+
+
                     for (i = 0; i < count; i++)
                     {
                         data += $"{split[i]}, ";
-
+                        if (scaleOverride.IsChecked == false)
+                        {
+                            tempD = Double.Parse(split[i]);
+                            if (tempD >= ystop)
+                            {
+                                MaxIndex = metingen;
+                                scaleChanging = true;
+                                if (tempD != ystop)
+                                {
+                                    ystop = tempD;
+                                }
+                            }
+                            else if (tempD <= ystart)
+                            {
+                                MinIndex = metingen;
+                                scaleChanging = true;
+                                if (tempD != ystart)
+                                {
+                                    ystart = tempD;
+                                }
+                            }
+                        }
                     }
+
+                    if (scaleOverride.IsChecked == false)
+                    {
+                        MaxIndex--;
+                        MinIndex--;
+                        if (MaxIndex < 0)
+                        {
+                            findLimits(findmin: false);
+                        }
+                        if (MinIndex < 0)
+                        {
+                            findLimits(findmax: false);
+                        }
+                    }
+
+
                     TextOut.Text += data;
                     textOutLines++;
                     while (textOutLines >= metingen)
@@ -361,6 +405,13 @@ namespace WPFCharting
                         TextOut.Text = TextOut.Text.Remove(0, TextOut.Text.IndexOf("\n") + 1);
                         textOutLines--;
                     }
+
+                    if ((scaleOverride.IsChecked == false) && scaleChanging)
+                    {
+                        scaleChanging = false;
+                        run();
+                    }
+
                 } else
                 {
                     TextOut.Text += "\n" + ReceivedData.Remove(ReceivedData.Length - 1);
@@ -370,9 +421,30 @@ namespace WPFCharting
             catch { }   
         }
 
-        private void yaxisScaling ()
-        {
-
+        private void findLimits(bool findmax = true, bool findmin = true) { 
+            if(findmax)
+            {
+                ystop = channels[0].Serie[0];
+                foreach (var ch in channels)
+                {
+                    for (i = 0; i < metingen; i++)
+                    {
+                        if (ch.Serie[i] > ystop) { ystop = ch.Serie[i]; MaxIndex = i; }
+                    }
+                }
+            }
+            if(findmin)
+            {
+                ystart = channels[0].Serie[0];
+                foreach (var ch in channels)
+                {
+                    for (i = 0; i < metingen; i++)
+                    {
+                        if (ch.Serie[i] < ystart) { ystart = ch.Serie[i]; MinIndex = i; }
+                    }
+                }
+            }
+            scaleChanging = true;
         }
 
         private void sendData() {

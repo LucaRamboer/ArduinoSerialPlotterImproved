@@ -71,7 +71,6 @@ namespace WPFCharting
             {
                 Serie[i] = Serie[i + 1];
             }
-            MainWindow.split[index - 1] = MainWindow.split[index - 1].Replace('.', ',');
             Double.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
         }
 
