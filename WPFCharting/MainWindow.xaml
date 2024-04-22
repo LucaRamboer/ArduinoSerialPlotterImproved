@@ -24,6 +24,7 @@
             <RowDefinition Height="26"/>
             <RowDefinition Height="26"/>
             <RowDefinition Height="23"/>
+            <RowDefinition Height="23"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Canvas x:Name="chartCanvas"
@@ -43,6 +44,7 @@
         <Label Content="segmenten:" Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2"/>
         <TextBox  Name="ySeg" Height="20" Grid.Row="8" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
         <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
+        <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="10" Grid.ColumnSpan="4" IsChecked="false"/>
         <ScrollViewer Name="textScrol" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Grid.Row="11" MaxHeight="180" Height="180" Margin="100, 0, 0, 20">
             <TextBlock Name="TextOut" TextWrapping="Wrap"/>
         </ScrollViewer>

@@ -20,6 +20,7 @@ using System.Windows.Shapes;
 using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Windows.Media.Animation;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace WPFCharting
 {
@@ -29,7 +30,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private bool scaleChanging;
+        private bool scaleChanging, savetofile;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
@@ -55,7 +56,9 @@ namespace WPFCharting
         TextBlock yTextBlock0, textBlock;
         TextBox box;
         private Point origin;
+        string pathFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PlotOutput.txt");
         public static string[] split = new string[] { };
+        string[] output = new string[1];
         String[] ports;
         private List<channel> channels = new List<channel>();
         private SolidColorBrush[] colors = new SolidColorBrush[] {
@@ -158,6 +161,14 @@ namespace WPFCharting
                     sendData();
                     senderBox.Clear();
                 }
+            };
+
+            SaveToFile.Checked += (sender, e) => {
+                savetofile = true;
+            };
+
+            SaveToFile.Unchecked += (sender, e) => {
+                savetofile = false;
             };
         }
 
@@ -399,6 +410,15 @@ namespace WPFCharting
 
 
                     TextOut.Text += data;
+                    output[0] = data;
+                    if (savetofile)
+                    {
+                        if (File.Exists(pathFile)) {
+                            File.AppendAllLines(pathFile, output); 
+                        } else { 
+                            File.WriteAllText(pathFile, data);
+                        }
+                    }
                     textOutLines++;
                     while (textOutLines >= metingen)
                     {
