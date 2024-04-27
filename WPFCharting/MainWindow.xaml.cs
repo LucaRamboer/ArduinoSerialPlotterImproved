@@ -21,6 +21,7 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Windows.Media.Animation;
 using static System.Net.Mime.MediaTypeNames;
+using Microsoft.Win32;
 
 namespace WPFCharting
 {
@@ -39,7 +40,7 @@ namespace WPFCharting
         public int ysegments = 10;
         public static double ystart = 0, ystop = 50;
         public double yboxMin = 0, yboxMax = 50;
-        double yPoint, xPoint, yValue, xValue, yMax, yMin, MaxIndex, MinIndex;
+        double yPoint, xPoint, yValue, MaxIndex, MinIndex;
         public static double yscale;
         private double tempD;
         private int count;
@@ -70,10 +71,12 @@ namespace WPFCharting
             Brushes.Yellow,
             Brushes.DarkGreen
         };
+        System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
 
         public MainWindow()
         {
             InitializeComponent();
+            FetchAvailablePorts();
             this.StateChanged += (sender, e) =>
             {
                 run();
@@ -83,7 +86,7 @@ namespace WPFCharting
             {
                 run();
             };
-            FetchAvailablePorts();
+            
             connectButton.Click += (sender, e) =>
             {
                 connect();
@@ -170,6 +173,11 @@ namespace WPFCharting
             SaveToFile.Unchecked += (sender, e) => {
                 savetofile = false;
             };
+
+            pathSelector.Click += (sender, e) =>
+            {
+                selectPath();
+            };
         }
 
         void FetchAvailablePorts()
@@ -216,7 +224,7 @@ namespace WPFCharting
             e.Handled = !regexN.IsMatch(box.Text.Insert(box.CaretIndex, e.Text));
         }
 
-            private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        private void SerPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             try
             {
@@ -227,18 +235,15 @@ namespace WPFCharting
 
         private void run()
         {
-            try
-            {
-                xinterval = (this.ActualWidth - xAxisStart - 70) / Double.Parse(metingenBox.Text);
-                if (xinterval < 0) xinterval = 0;
-            }
-            catch { }
-
+            xinterval = (this.ActualWidth - xAxisStart - 70) / (metingen - 1);
+            if (xinterval < 0) xinterval = 0;
+            
             foreach (var channel in channels)
             {
                 channel.setOrigin(this.ActualHeight, this.ActualWidth);
             }
             chartCanvas.Children.Clear();
+
             xAxisLine = new Line()
             {
                 X1 = xAxisStart,
@@ -248,6 +253,7 @@ namespace WPFCharting
                 Stroke = Brushes.LightGray,
                 StrokeThickness = 1,
             };
+
             yAxisLine = new Line()
             {
                 X1 = xAxisStart,
@@ -271,26 +277,24 @@ namespace WPFCharting
         private void xrun()
         {
             // x axis lines
-            xValue = xinterval;
             xPoint = origin.X + xinterval;
-            while (xPoint < xAxisLine.X2)
+             for(i = 0; i < metingen - 1; i++)
             {
                 line = new Line()
                 {
                     X1 = xPoint,
                     Y1 = yAxisLine.Y1,
                     X2 = xPoint,
-                    Y2 = this.ActualHeight - yAxisStart,
+                    Y2 = yAxisLine.Y2,
                     Stroke = Brushes.LightGray,
                     StrokeThickness = 1,
                     Opacity = 1,
                 };
 
-                if (line.Y2 < line.Y1) line.Y2 = line.Y1;
+                if (line.Y2 < line.Y1) { line = null; break; }
                 chartCanvas.Children.Add(line);
 
                 xPoint += xinterval;
-                xValue += xinterval;
             }
         }
 
@@ -325,7 +329,7 @@ namespace WPFCharting
                         Opacity = 1,
                     };
 
-                if (line.X2 < line.X1) line.X2 = line.X1;
+                if (line.X2 < line.X1) { line = null; break; }
                 chartCanvas.Children.Add(line);
 
                 textBlock = new TextBlock() { Text = $"{yValue}" };
@@ -472,6 +476,17 @@ namespace WPFCharting
             {
                 SerPort.WriteLine(senderBox.Text);
             } catch { }
+        }
+
+        void selectPath()
+        {
+            openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
+            var result = openFileDlg.ShowDialog();
+            if (result.ToString() != string.Empty)
+            {
+                pathFile = System.IO.Path.Combine(openFileDlg.SelectedPath, "PlotOutput.txt");
+            }
+            
         }
     }
 
