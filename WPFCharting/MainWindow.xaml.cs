@@ -31,7 +31,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private bool scaleChanging, savetofile;
+        private bool scaleChanging, savetofile, connected, oldConnected;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
@@ -72,6 +72,8 @@ namespace WPFCharting
             Brushes.DarkGreen
         };
         System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
+        System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+
 
         public MainWindow()
         {
@@ -89,7 +91,7 @@ namespace WPFCharting
             
             connectButton.Click += (sender, e) =>
             {
-                connect();
+                if (connected) disconnect(); else connect();
             };
             refreshButton.Click += (sender, e) =>
             {
@@ -178,6 +180,10 @@ namespace WPFCharting
             {
                 selectPath();
             };
+
+            dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
+            dispatcherTimer.Start();
         }
 
         void FetchAvailablePorts()
@@ -211,6 +217,25 @@ namespace WPFCharting
             {
                 MessageBox.Show(ex.Message, "Error...!");
             }
+            connected = true;
+            connectButton.Content = "disconnect";
+            refreshButton.IsEnabled = false;
+            Portsbox.IsEnabled = false;
+        }
+
+        void disconnect() {
+            try
+            {
+                SerPort.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error...!");
+            }
+            connected = false;
+            connectButton.Content = "connect";
+            refreshButton.IsEnabled = true;
+            Portsbox.IsEnabled = true;
         }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e) //Zorgt er voor dat enkel nummers in de textbox gezet kunnen worden
@@ -472,10 +497,21 @@ namespace WPFCharting
         }
 
         private void sendData() {
-            try
+            if (connected)
             {
-                SerPort.WriteLine(senderBox.Text);
-            } catch { }
+                try
+                {
+                    SerPort.WriteLine(senderBox.Text);
+                }
+                catch (Exception ex)
+                {
+                    if (!SerPort.IsOpen) losconection(); 
+                    else MessageBox.Show(ex.Message, "Error...!");
+                }
+            }
+            else {
+                MessageBox.Show("Not connected to a port", "Connection");
+            }
         }
 
         void selectPath()
@@ -487,6 +523,23 @@ namespace WPFCharting
                 pathFile = System.IO.Path.Combine(openFileDlg.SelectedPath, "PlotOutput.txt");
             }
             
+        }
+
+        private void dispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            if(connected && !SerPort.IsOpen)
+            {
+                losconection();
+            }
+        }
+
+        void losconection()
+        {
+            connected = false;
+            connectButton.Content = "connect";
+            MessageBox.Show("Connection to port lost!", "Connection");
+            refreshButton.IsEnabled = true;
+            Portsbox.IsEnabled = true;
         }
     }
 

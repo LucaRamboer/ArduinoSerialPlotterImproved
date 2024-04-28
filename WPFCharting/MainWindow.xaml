@@ -32,7 +32,7 @@
         <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="0" Grid.ColumnSpan="3"/>
 
         <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="1" Grid.ColumnSpan="3"/>
-            
+
         <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="2" Grid.ColumnSpan="3"/>
             
         <Label Content="Metingen:" Grid.Row="3" Grid.ColumnSpan="3"/>
@@ -51,7 +51,7 @@
 
         <CheckBox Name="scaleOverride" Content="scale override" Grid.Row="8" Grid.ColumnSpan="3" IsChecked="False"/>
 
-        <Label Content="segmenten:" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <Label Content="segments:" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"/>
             
         <TextBox  Name="ySeg" Height="20" Grid.Row="9" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
             
