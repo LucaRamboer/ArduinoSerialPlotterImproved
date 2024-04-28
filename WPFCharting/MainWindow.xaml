@@ -56,7 +56,7 @@
         <TextBox  Name="ySeg" Height="20" Grid.Row="9" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
             
         <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
-            
+
         <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 155" IsChecked="false"/>
 
         <Button Name="pathSelector" Content="file location" Grid.Row="12" Grid.ColumnSpan="3" VerticalAlignment="Bottom" Margin="1, 0, 20, 130"/>
