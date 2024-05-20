@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Windows.Media.Animation;
 using static System.Net.Mime.MediaTypeNames;
-using Microsoft.Win32;
 
 namespace WPFCharting
 {
@@ -31,7 +30,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private bool scaleChanging, savetofile, connected, oldConnected;
+        private bool scaleChanging, savetofile, connected;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
@@ -48,12 +47,10 @@ namespace WPFCharting
         private int textOutLines, metingen = 50;
         private string ReceivedData;
         public string data;
-        private string tempS;
-        private Polyline chartPolyline;
         private SerialPort SerPort;
-        Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
-        Regex regex = new Regex("[^0-9]+");
-        Regex regexIn = new Regex("[0-9.]+");
+        readonly Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
+        readonly Regex regex = new Regex("[^0-9]+");
+        readonly Regex regexIn = new Regex("[0-9.]+");
         TextBlock yTextBlock0, textBlock;
         TextBox box;
         private Point origin;
@@ -71,8 +68,8 @@ namespace WPFCharting
             Brushes.Yellow,
             Brushes.DarkGreen
         };
-        System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
-        System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+        System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog(); //defines folder dialog
+        System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer(); //defines interval timer
 
 
         public MainWindow()
@@ -149,6 +146,7 @@ namespace WPFCharting
 
             scaleOverride.Unchecked += (sender, e) => {
                 findLimits();
+                run();
             };
 
             ySeg.TextChanged += (sender, e) =>
@@ -181,6 +179,7 @@ namespace WPFCharting
                 selectPath();
             };
 
+            //puts the right settings on the iterval timer
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
@@ -188,8 +187,8 @@ namespace WPFCharting
 
         void FetchAvailablePorts()
         {
-            ports = SerialPort.GetPortNames(); //We get the available COM ports
             Portsbox.Items.Clear();
+            ports = SerialPort.GetPortNames(); //We get the available COM ports
             foreach (var port in ports)
             {
                 Portsbox.Items.Add(port);
@@ -198,29 +197,30 @@ namespace WPFCharting
 
         void connect()
         {
-            SerPort = new SerialPort(); //instantiate our serial port SerPort
-
             //hardcoding some parameters, check MSDN for more
-            SerPort.BaudRate = 9600;
-            SerPort.PortName = Portsbox.Text;
-            SerPort.Parity = Parity.None;
-            SerPort.DataBits = 8;
-            SerPort.StopBits = StopBits.One;
-            SerPort.ReadBufferSize = 200000000;
-            SerPort.DataReceived += SerPort_DataReceived;
 
             try
             {
+                SerPort = new SerialPort(); //instantiate our serial port SerPort
+                SerPort.BaudRate = 9600;
+                SerPort.PortName = Portsbox.Text;
+                SerPort.Parity = Parity.None;
+                SerPort.DataBits = 8;
+                SerPort.StopBits = StopBits.One;
+                SerPort.ReadBufferSize = 200000000;
+                SerPort.DataReceived += SerPort_DataReceived;
                 SerPort.Open();
+                connected = true;
+                connectButton.Content = "disconnect";
+                refreshButton.IsEnabled = false;
+                Portsbox.IsEnabled = false;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error...!");
+                if(ex.Message.EndsWith("does not exist.")) FetchAvailablePorts();
             }
-            connected = true;
-            connectButton.Content = "disconnect";
-            refreshButton.IsEnabled = false;
-            Portsbox.IsEnabled = false;
+            
         }
 
         void disconnect() {
@@ -265,7 +265,7 @@ namespace WPFCharting
             
             foreach (var channel in channels)
             {
-                channel.setOrigin(this.ActualHeight, this.ActualWidth);
+                channel.setOrigin(this.ActualHeight);
             }
             chartCanvas.Children.Clear();
 
@@ -297,7 +297,7 @@ namespace WPFCharting
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
             xrun();
             yrun();
-            foreach (var ch in channels) ch.drawingchannel(chartCanvas);
+            foreach (var ch in channels) ch.drawingchannel();
         }
         private void xrun()
         {
@@ -384,15 +384,16 @@ namespace WPFCharting
                         {
                             channels[channels.Count - 1].remove();
                             channels.RemoveAt(channels.Count - 1);
+                            if (scaleOverride.IsChecked == true) findLimits();
                         }
-                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
+                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, chartCanvas));
                         if (colorCount == colors.Length) colorCount = 0;
                     }
 
                     foreach (var ch in channels)
                     {
                         ch.Line();
-                        ch.drawingchannel(chartCanvas);
+                        ch.drawingchannel();
                     }
 
 
@@ -527,43 +528,21 @@ namespace WPFCharting
 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if(connected && !SerPort.IsOpen)
+            if(connected && !SerPort.IsOpen)//checks every tick if the connection isn't lost
             {
                 losconection();
             }
         }
 
+        //notifys the user and sets the right vars to the right values for the los of connection
         void losconection()
         {
             connected = false;
             connectButton.Content = "connect";
-            MessageBox.Show("Connection to port lost!", "Connection");
             refreshButton.IsEnabled = true;
             Portsbox.IsEnabled = true;
-        }
-    }
-
-
-    public class Holder
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public Point Point { get; set; }
-
-        public Holder()
-        {
-        }
-    }
-
-    public class Value
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-
-        public Value(double x, double y)
-        {
-            X = x;
-            Y = y;
+            FetchAvailablePorts();
+            MessageBox.Show("Connection to port lost!", "Connection");
         }
     }
 }

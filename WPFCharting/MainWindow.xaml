@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WPFCharting"
         mc:Ignorable="d"
         Title="MainWindow" Height="550" Width="800">
-    <Grid>
+    <Grid Name="GridC">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="35"/>
             <ColumnDefinition Width="42"/>
@@ -14,6 +14,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="25"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
             <RowDefinition Height="30"/>
@@ -29,42 +30,44 @@
         </Grid.RowDefinitions>
         <Canvas x:Name="chartCanvas" Background="White"/>
 
-        <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="0" Grid.ColumnSpan="3"/>
+        <Label Content="Serial port:" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"/>
+        
+        <ComboBox Name="Portsbox" Width="100" Height="20" Grid.Row="1" Grid.ColumnSpan="3"/>
 
-        <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="1" Grid.ColumnSpan="3"/>
+        <Button Name="connectButton" Content="connect" Width="100" Height="20" Grid.Row="2" Grid.ColumnSpan="3"/>
 
-        <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="2" Grid.ColumnSpan="3"/>
+        <Button Name="refreshButton" Content="refresh" Width="100" Height="20" Grid.Row="3" Grid.ColumnSpan="3"/>
             
-        <Label Content="Metingen:" Grid.Row="3" Grid.ColumnSpan="3"/>
+        <Label Content="Metingen:" Grid.Row="4" Grid.ColumnSpan="3"/>
             
-        <TextBox Name="metingenBox" Height="20" Grid.Row="4" Text="50" Width="100" MaxLength="4" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+        <TextBox Name="metingenBox" Height="20" Grid.Row="5" Text="50" Width="100" MaxLength="4" PreviewTextInput="NumberValidationTextBox" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="5,0,0,0"/>
             
-        <Label Content="y-axis scale:" Grid.Row="5" Grid.ColumnSpan="3" Height="26"/>
+        <Label Content="y-axis scale:" Grid.Row="6" Grid.ColumnSpan="3" Height="26"/>
             
-        <Label Content="Max:" Grid.Row="6" Grid.Column="0"/>
+        <Label Content="Max:" Grid.Row="7" Grid.Column="0"/>
             
-        <TextBox Name="YMax" Height="20" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="50" Width="50" PreviewTextInput="NumberValidationTextBoxNegatif"/>
+        <TextBox Name="YMax" Height="20" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Text="50" Width="50" PreviewTextInput="NumberValidationTextBoxNegatif"/>
             
-        <Label Content="Min:" Grid.Row="7" Grid.Column="0"/>
+        <Label Content="Min:" Grid.Row="8" Grid.Column="0"/>
             
-        <TextBox  Name="YMin" Height="20" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Text="0" Width="50" PreviewTextInput="NumberValidationTextBoxNegatif"/>
+        <TextBox  Name="YMin" Height="20" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Text="0" Width="50" PreviewTextInput="NumberValidationTextBoxNegatif"/>
 
-        <CheckBox Name="scaleOverride" Content="scale override" Grid.Row="8" Grid.ColumnSpan="3" IsChecked="False"/>
+        <CheckBox Name="scaleOverride" Content="scale override" Grid.Row="9" Grid.ColumnSpan="3" IsChecked="False"/>
 
-        <Label Content="segments:" Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="2"/>
+        <Label Content="segments:" Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2"/>
             
-        <TextBox  Name="ySeg" Height="20" Grid.Row="9" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
+        <TextBox  Name="ySeg" Height="20" Grid.Row="10" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
             
-        <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
+        <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
 
-        <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 155" IsChecked="false"/>
+        <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 155" IsChecked="false"/>
 
-        <Button Name="pathSelector" Content="file location" Grid.Row="12" Grid.ColumnSpan="3" VerticalAlignment="Bottom" Margin="1, 0, 20, 130"/>
+        <Button Name="pathSelector" Content="file location" Grid.Row="13" Grid.ColumnSpan="3" VerticalAlignment="Bottom" Margin="1, 0, 20, 130"/>
 
-        <ScrollViewer Name="textScrol" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Grid.Row="11" MaxHeight="180" Height="180" Margin="100, 0, 0, 20">
+        <ScrollViewer Name="textScrol" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Grid.Row="12" MaxHeight="180" Height="180" Margin="100, 0, 0, 20">
             <TextBlock Name="TextOut" TextWrapping="Wrap"/>
         </ScrollViewer>
             
-        <TextBox Name="senderBox" Grid.Row="12" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Height="20" Margin="100,0,0,0"/>
+        <TextBox Name="senderBox" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Height="20" Margin="100,0,0,0"/>
     </Grid>
 </Window>
