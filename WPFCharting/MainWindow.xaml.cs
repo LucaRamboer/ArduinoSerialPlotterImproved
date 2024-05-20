@@ -76,6 +76,7 @@ namespace WPFCharting
         {
             InitializeComponent();
             FetchAvailablePorts();
+            //regelt alle events die moeten geregeld worden
             this.StateChanged += (sender, e) =>
             {
                 run();
@@ -199,7 +200,7 @@ namespace WPFCharting
         {
             //hardcoding some parameters, check MSDN for more
 
-            try
+            try //in het geval dat het verbinden mislukt voor welke reden dan ook zal dit er voor zorgen dat de code niet crashed
             {
                 SerPort = new SerialPort(); //instantiate our serial port SerPort
                 SerPort.BaudRate = 9600;
@@ -218,7 +219,7 @@ namespace WPFCharting
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error...!");
-                if(ex.Message.EndsWith("does not exist.")) FetchAvailablePorts();
+                if(ex.Message.EndsWith("does not exist.")) FetchAvailablePorts(); // als de gebruiker probeert te verbinden met een poort dat niet bestaad zal de poort lijst hetnieuwen
             }
             
         }
@@ -226,7 +227,7 @@ namespace WPFCharting
         void disconnect() {
             try
             {
-                SerPort.Close();
+                SerPort.Close(); //sluit de verbinding met de poort
             }
             catch (Exception ex)
             {
@@ -260,10 +261,10 @@ namespace WPFCharting
 
         private void run()
         {
-            xinterval = (this.ActualWidth - xAxisStart - 70) / (metingen - 1);
+            xinterval = (this.ActualWidth - xAxisStart - 70) / (metingen - 1); //bepaalt de juiste hoeveelheid pixels per meting
             if (xinterval < 0) xinterval = 0;
             
-            foreach (var channel in channels)
+            foreach (var channel in channels) // roept voor elk bestaand kannaal de volgende functies op.
             {
                 channel.setOrigin(this.ActualHeight);
             }
@@ -380,7 +381,7 @@ namespace WPFCharting
                     for(i = 0; i < count; i++) { split[i] = split[i].Replace('.', ','); }
                     while (count != channels.Count)
                     {
-                        if (count < channels.Count)
+                        if (count < channels.Count)//kijkt na of er kanalen moeten verwijderd of aangemaakt moeten worden
                         {
                             channels[channels.Count - 1].remove();
                             channels.RemoveAt(channels.Count - 1);
@@ -424,10 +425,11 @@ namespace WPFCharting
                         }
                     }
 
-                    if (scaleOverride.IsChecked == false)
+                    if (scaleOverride.IsChecked == false)//kijkt of smart scaling aan staat
                     {
                         MaxIndex--;
                         MinIndex--;
+                        //als de index van de limiet onder nul zit oftewel de limiet is gepaseerd zal er opnieuw gezocht worden naar de limiet
                         if (MaxIndex < 0)
                         {
                             findLimits(findmin: false);
@@ -441,7 +443,7 @@ namespace WPFCharting
 
                     TextOut.Text += data;
                     output[0] = data;
-                    if (savetofile)
+                    if (savetofile) //schrijft de nieuwe data naar de file als dit aan staat
                     {
                         if (File.Exists(pathFile)) {
                             File.AppendAllLines(pathFile, output); 
@@ -450,13 +452,13 @@ namespace WPFCharting
                         }
                     }
                     textOutLines++;
-                    while (textOutLines >= metingen)
+                    while (textOutLines >= metingen)//kijkt of de hoeveelheid metingen in de textbox niet meer is dan de hoeveelheid metingen
                     {
                         TextOut.Text = TextOut.Text.Remove(0, TextOut.Text.IndexOf("\n") + 1);
                         textOutLines--;
                     }
 
-                    if ((scaleOverride.IsChecked == false) && scaleChanging)
+                    if ((scaleOverride.IsChecked == false) && scaleChanging)//past de chart en polylines aan op de nieuwe waardes
                     {
                         scaleChanging = false;
                         run();
@@ -471,7 +473,7 @@ namespace WPFCharting
             catch { }   
         }
 
-        private void findLimits(bool findmax = true, bool findmin = true) { 
+        private void findLimits(bool findmax = true, bool findmin = true) { //zoekt de limieten waar er om gevraagt wordt van de huidige signale en geeft commando om de scale aan te passen
             if(findmax)
             {
                 ystop = channels[0].Serie[0];
@@ -497,7 +499,7 @@ namespace WPFCharting
             scaleChanging = true;
         }
 
-        private void sendData() {
+        private void sendData() { //stuurt data uit op de Seriële comunicate als er een verbinding is
             if (connected)
             {
                 try
@@ -515,8 +517,10 @@ namespace WPFCharting
             }
         }
 
+
         void selectPath()
         {
+            //opent een folder selector dialog en gebruikt de output om een folder te selecteren voor de file saving mechanic
             openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
             var result = openFileDlg.ShowDialog();
             if (result.ToString() != string.Empty)
@@ -528,7 +532,7 @@ namespace WPFCharting
 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if(connected && !SerPort.IsOpen)//checks every tick if the connection isn't lost
+            if(connected && !SerPort.IsOpen)//checks every tick if the connection is lost
             {
                 losconection();
             }

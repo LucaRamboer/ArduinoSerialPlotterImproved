@@ -40,13 +40,13 @@ namespace WPFCharting
             this.height = height - MainWindow.yAxisStart;
         }
 
-        public void Sizing(int verzetting)
+        public void Sizing(int verzetting) 
         {
             Size = metingen;
             metingen = verzetting;
-            if (Size < metingen)
+            temp = new double[metingen];//maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
+            if (Size < metingen)//ziet of de array groter of kleiner moet worden om dan de juiste waardes op de juiste plek te zetten
             {
-                temp = new double[metingen]; //maakt een rijdeljke array aan om data tijdelijk juist te zetten met de juiste limieten
                 for (i = 0; i < Size; i++)
                 {
                     temp[i] = Serie[i];
@@ -55,7 +55,6 @@ namespace WPFCharting
             else if (Size > metingen)
             {
                 offset = Size - metingen - 1;
-                temp = new double[metingen];
                 for (i = 0; i < metingen - 1; i++)
                 {
                     temp[i] = Serie[i + offset];
@@ -67,6 +66,7 @@ namespace WPFCharting
 
         public void Line()
         {
+            //schuift alle waardes door met 1 plaats
             for (i = 0; i < metingen - 1; i++)
             {
                 Serie[i] = Serie[i + 1];
@@ -75,14 +75,15 @@ namespace WPFCharting
         }
 
         public void drawingchannel () {
-            chart.Children.Remove(chartPolyline);
-            chartPolyline = new Polyline()
+            chart.Children.Remove(chartPolyline);//haalt de vorige polyline weg van onze chart
+            chartPolyline = new Polyline() //maakt een nieuwe polyline aan
             {
                 Stroke = color,
                 StrokeThickness = 2,
             };
-            chart.Children.Add(chartPolyline);
+            chart.Children.Add(chartPolyline);//voegt de nieuwe polyline toe aan onze chart
 
+            //logia voor op elke x-waarde de juiste y waarde te plakken en deze dan vervolgens toe te voegen aan de polyline
             for (i = 0; i < metingen; i++)
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
@@ -95,7 +96,7 @@ namespace WPFCharting
 
         public void remove()
         {
-            chart.Children.Remove(chartPolyline);
+            chart.Children.Remove(chartPolyline);//verwijdert de polyline van onze chart
         }
     }
 }
