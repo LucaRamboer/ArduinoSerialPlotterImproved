@@ -12,32 +12,32 @@ namespace WPFCharting
 {
     public class channel
     {
-        private int index;
+        private readonly int index;
         private System.Windows.Point point = new System.Windows.Point(MainWindow.xAxisStart, MainWindow.yAxisStart);
-        private SolidColorBrush color = Brushes.Blue;
+        private readonly SolidColorBrush color = Brushes.Blue;
         private Polyline chartPolyline;
         private int offset;
         private double deltaValue;
         int i, Size;
         public int metingen = 50;
-        private double height, width;
+        private double height;
+        private readonly Canvas chart;
 
         private double[] temp = null;
 
         public double[] Serie = new double[50];
 
-        public channel(int index, SolidColorBrush color, double height, double width)
+        public channel(int index, SolidColorBrush color, double height, Canvas chart)
         {
             this.index = index;
             this.color = color;
             this.height = height - MainWindow.yAxisStart;
-            this.width = width - 70;
+            this.chart = chart;
         }
 
-        public void setOrigin (double height, double width)
+        public void setOrigin (double height)
         {
             this.height = height - MainWindow.yAxisStart;
-            this.width = width - 70;
         }
 
         public void Sizing(int verzetting)
@@ -74,7 +74,7 @@ namespace WPFCharting
             Double.TryParse(MainWindow.split[index - 1], out Serie[metingen - 1]);
         }
 
-        public void drawingchannel (Canvas chart) {
+        public void drawingchannel () {
             chart.Children.Remove(chartPolyline);
             chartPolyline = new Polyline()
             {
@@ -82,6 +82,7 @@ namespace WPFCharting
                 StrokeThickness = 2,
             };
             chart.Children.Add(chartPolyline);
+
             for (i = 0; i < metingen; i++)
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
@@ -94,8 +95,7 @@ namespace WPFCharting
 
         public void remove()
         {
-            chartPolyline.Points.Clear();
-            chartPolyline = null;
+            chart.Children.Remove(chartPolyline);
         }
     }
 }

@@ -21,7 +21,6 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Windows.Media.Animation;
 using static System.Net.Mime.MediaTypeNames;
-using Microsoft.Win32;
 
 namespace WPFCharting
 {
@@ -31,7 +30,7 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private bool scaleChanging, savetofile, connected, oldConnected;
+        private bool scaleChanging, savetofile, connected;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
@@ -48,12 +47,10 @@ namespace WPFCharting
         private int textOutLines, metingen = 50;
         private string ReceivedData;
         public string data;
-        private string tempS;
-        private Polyline chartPolyline;
         private SerialPort SerPort;
-        Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
-        Regex regex = new Regex("[^0-9]+");
-        Regex regexIn = new Regex("[0-9.]+");
+        readonly Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
+        readonly Regex regex = new Regex("[^0-9]+");
+        readonly Regex regexIn = new Regex("[0-9.]+");
         TextBlock yTextBlock0, textBlock;
         TextBox box;
         private Point origin;
@@ -71,8 +68,8 @@ namespace WPFCharting
             Brushes.Yellow,
             Brushes.DarkGreen
         };
-        System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog();
-        System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer();
+        System.Windows.Forms.FolderBrowserDialog openFileDlg = new System.Windows.Forms.FolderBrowserDialog(); //defines folder dialog
+        System.Windows.Threading.DispatcherTimer dispatcherTimer = new System.Windows.Threading.DispatcherTimer(); //defines interval timer
 
 
         public MainWindow()
@@ -181,6 +178,7 @@ namespace WPFCharting
                 selectPath();
             };
 
+            //puts the right settings on the nterval timer
             dispatcherTimer.Tick += new EventHandler(dispatcherTimer_Tick);
             dispatcherTimer.Interval = new TimeSpan(0, 0, 1);
             dispatcherTimer.Start();
@@ -265,7 +263,7 @@ namespace WPFCharting
             
             foreach (var channel in channels)
             {
-                channel.setOrigin(this.ActualHeight, this.ActualWidth);
+                channel.setOrigin(this.ActualHeight);
             }
             chartCanvas.Children.Clear();
 
@@ -297,7 +295,7 @@ namespace WPFCharting
             origin = new Point(xAxisLine.X1, yAxisLine.Y2);
             xrun();
             yrun();
-            foreach (var ch in channels) ch.drawingchannel(chartCanvas);
+            foreach (var ch in channels) ch.drawingchannel();
         }
         private void xrun()
         {
@@ -385,14 +383,14 @@ namespace WPFCharting
                             channels[channels.Count - 1].remove();
                             channels.RemoveAt(channels.Count - 1);
                         }
-                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, this.ActualWidth));
+                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, chartCanvas));
                         if (colorCount == colors.Length) colorCount = 0;
                     }
 
                     foreach (var ch in channels)
                     {
                         ch.Line();
-                        ch.drawingchannel(chartCanvas);
+                        ch.drawingchannel();
                     }
 
 
@@ -527,12 +525,13 @@ namespace WPFCharting
 
         private void dispatcherTimer_Tick(object sender, EventArgs e)
         {
-            if(connected && !SerPort.IsOpen)
+            if(connected && !SerPort.IsOpen)//checks every tick if the connection isn't lost
             {
                 losconection();
             }
         }
 
+        //notifys the user and sets the right vars to the right values for the los of connection
         void losconection()
         {
             connected = false;
