@@ -1,5 +1,7 @@
 # seri&euml;le plotter
-Deze plotter maakt gebruik van een ',' om waardes te seperaten
+Deze plotter maakt gebruik van een ',' om waardes te seperaten  
+**voorbeeld:**  
+12.65, -65.87, 9.1234
 
 ### vergeet zeker niet System.Windows.Forms DLL toe te voegen bij refrences
 
