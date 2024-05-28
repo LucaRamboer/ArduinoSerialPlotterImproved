@@ -19,7 +19,7 @@ namespace WPFCharting
         private int offset;
         private double deltaValue;
         int i, Size;
-        public int metingen = 50;
+        private int metingen = 50;
         private double height;
         private readonly Canvas chart;
 
