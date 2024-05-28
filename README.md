@@ -11,7 +11,7 @@ Deze code maakt gebruik van een file saving mechanic dat deze ddl gebruikt om ee
 Dit is een dummy arduino code dat kan gebruikt worden om de code te testen
 
 ### Seriële plotter met wpf.docx
-Hier in staat meer uitleg van de code.
+Hier in staat meer uitleg over de code.
 
 ### UML schema van de code
 ![alt text](https://github.com/LucaRamboer/WPFCharting/blob/master/UML%20schema.png?raw=true)
