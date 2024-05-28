@@ -47,6 +47,7 @@ namespace WPFCharting
         private int textOutLines, metingen = 50;
         private string ReceivedData;
         public string data;
+        private string tempS;
         private SerialPort SerPort;
         readonly Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
         readonly Regex regex = new Regex("[^0-9]+");
@@ -440,15 +441,20 @@ namespace WPFCharting
                         }
                     }
 
+                    //zorgt er voor dat de data de de gebruiker te zien krijgt terug mooi een punt krijgt als kommagetal en een komma als seperator en dan de laatste komma weg haald
+                    tempS = "\n";
+                    for (i = 0; i < count; i++) { tempS += $"{split[i].Replace(',', '.')}, "; }
+                    tempS = tempS.Remove(tempS.Length - 2);
+                    TextOut.Text += tempS;
 
-                    TextOut.Text += data;
-                    output[0] = data;
                     if (savetofile) //schrijft de nieuwe data naar de file als dit aan staat
                     {
+                        
                         if (File.Exists(pathFile)) {
+                            output[0] = tempS;
                             File.AppendAllLines(pathFile, output); 
                         } else { 
-                            File.WriteAllText(pathFile, data);
+                            File.WriteAllText(pathFile, tempS);
                         }
                     }
                     textOutLines++;
