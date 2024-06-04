@@ -21,6 +21,7 @@ using System.Text.RegularExpressions;
 using System.Linq.Expressions;
 using System.Windows.Media.Animation;
 using static System.Net.Mime.MediaTypeNames;
+using System.Management;
 
 namespace WPFCharting
 {
@@ -30,13 +31,13 @@ namespace WPFCharting
     public partial class MainWindow : Window
     {
         int i;
-        private bool scaleChanging, savetofile, connected;
+        private bool scaleChanging, savetofile, connected, interval0;
         public static Line xAxisLine, yAxisLine, line;
         public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
         public double yPointInterval;
-        public int ysegments = 10;
+        public int ysegments = 10, ysegmentsOld = 10;
         public static double ystart = 0, ystop = 50;
         public double yboxMin = 0, yboxMax = 50;
         double yPoint, xPoint, yValue, MaxIndex, MinIndex;
@@ -54,17 +55,16 @@ namespace WPFCharting
         readonly Regex regexIn = new Regex("[0-9.]+");
         TextBlock yTextBlock0, textBlock;
         TextBox box;
-        private Point origin;
+        static public Point origin;
         string pathFile = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "PlotOutput.txt");
         public static string[] split = new string[] { };
         string[] output = new string[1];
-        String[] ports;
         private List<channel> channels = new List<channel>();
         private SolidColorBrush[] colors = new SolidColorBrush[] {
             Brushes.Blue,
             Brushes.Brown,
             Brushes.Red,
-            Brushes.Green, 
+            Brushes.Green,
             Brushes.Magenta,
             Brushes.Yellow,
             Brushes.DarkGreen
@@ -82,12 +82,12 @@ namespace WPFCharting
             {
                 run();
             };
-            
+
             this.SizeChanged += (sender, e) =>
             {
                 run();
             };
-            
+
             connectButton.Click += (sender, e) =>
             {
                 if (connected) disconnect(); else connect();
@@ -157,12 +157,12 @@ namespace WPFCharting
                     ysegments = Int32.Parse(ySeg.Text);
                     run();
                 } catch { }
-                
+
             };
 
             senderBox.KeyDown += (sender, e) =>
             {
-                if (e.Key == Key.Enter) { 
+                if (e.Key == Key.Enter) {
                     sendData();
                     senderBox.Clear();
                 }
@@ -187,11 +187,73 @@ namespace WPFCharting
             dispatcherTimer.Start();
         }
 
+        
+
+        static ManagementObject[] FindPorts(){
+            try
+            {
+                ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM WIN32_PnPEntity");
+                List<ManagementObject> objects = new List<ManagementObject>();
+
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    objects.Add(obj);
+                }
+                return objects.ToArray();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error...!");
+                return new ManagementObject[] { };
+            }
+        }
+
+        static string[] FindAllPorts()
+        {
+            List<string> ports = new List<string>();
+            foreach (ManagementObject obj in FindPorts())
+            {
+                try
+                {
+                    if (obj["Caption"] != null)
+                    {
+                        if (obj["Caption"].ToString().Contains("(COM"))
+                        {
+                            string ComName = ParseCOMName(obj);
+                            if (ComName != null)
+                                ports.Add(ComName + "\n" + obj["Description"].ToString());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error...!");
+                }
+            }
+
+            return ports.ToArray();
+        }
+
+
+        static string ParseCOMName(ManagementObject obj)
+        {
+            string name = obj["Name"].ToString();
+            int startIndex = name.LastIndexOf("(");
+            int endIndex = name.LastIndexOf(")");
+
+            if(startIndex != -1 && endIndex != 1)
+            {
+                name = name.Substring(startIndex + 1, endIndex - startIndex - 1);
+                return name;
+            }
+
+            return null;
+        }
+
         void FetchAvailablePorts()
         {
             Portsbox.Items.Clear();
-            ports = SerialPort.GetPortNames(); //We get the available COM ports
-            foreach (var port in ports)
+            foreach (var port in FindAllPorts())
             {
                 Portsbox.Items.Add(port);
             }
@@ -205,7 +267,7 @@ namespace WPFCharting
             {
                 SerPort = new SerialPort(); //instantiate our serial port SerPort
                 SerPort.BaudRate = 9600;
-                SerPort.PortName = Portsbox.Text;
+                SerPort.PortName = Portsbox.Text.Substring(0, Portsbox.Text.IndexOf("\n"));
                 SerPort.Parity = Parity.None;
                 SerPort.DataBits = 8;
                 SerPort.StopBits = StopBits.One;
@@ -270,7 +332,16 @@ namespace WPFCharting
                 channel.setOrigin(this.ActualHeight);
             }
             chartCanvas.Children.Clear();
-
+            yAxisStart = 250;
+            if(this.ActualHeight < 550)
+            {
+                if (this.ActualHeight < 300)
+                    yAxisStart = 0;
+                else
+                {
+                    yAxisStart = 250 - (550 - this.ActualHeight);
+                }
+            }
             xAxisLine = new Line()
             {
                 X1 = xAxisStart,
@@ -331,7 +402,16 @@ namespace WPFCharting
             yPointInterval = (yAxisLine.Y2 - yAxisLine.Y1 - 1) / ysegments;
             if (yPointInterval < 1) yPointInterval = 1;
             yinterval = (ystop - ystart) / ysegments;
-            if (yinterval == 0) { ysegments = 0; ySeg.Text = "0"; }
+            if (yinterval == 0) {
+                ysegmentsOld = ysegments;
+                ysegments = 0; 
+                ySeg.Text = "0";
+                interval0 = true;
+            } else if (interval0) {
+                ysegments = ysegmentsOld;
+                ySeg.Text = $"{ysegments}";
+                interval0 = false;
+            }
             yscale = (yAxisLine.Y2 - yAxisLine.Y1) / (ystop - ystart);
 
 
@@ -359,7 +439,9 @@ namespace WPFCharting
                 if (line.X2 < line.X1) { line = null; break; }
                 chartCanvas.Children.Add(line);
 
-                textBlock = new TextBlock() { Text = $"{yValue}" };
+                tempS = ((ystop - ystart) / ysegments).ToString();
+                if (tempS.IndexOf(',') < 0) textBlock = new TextBlock(){ Text = $"{yValue}" };
+                else textBlock = new TextBlock() { Text = $"{Math.Round(yValue, tempS.Substring(tempS.IndexOf(',')).Length)}" };
                 chartCanvas.Children.Add(textBlock);
                 Canvas.SetLeft(textBlock, line.X1 - 30);
                 Canvas.SetTop(textBlock, yPoint - 10);
@@ -388,7 +470,7 @@ namespace WPFCharting
                             channels.RemoveAt(channels.Count - 1);
                             if (scaleOverride.IsChecked == true) findLimits();
                         }
-                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, chartCanvas));
+                        else channels.Add(new channel(channels.Count + 1, colors[colorCount++], this.ActualHeight, chartCanvas, LimitBlock));
                         if (colorCount == colors.Length) colorCount = 0;
                     }
 
@@ -480,29 +562,37 @@ namespace WPFCharting
         }
 
         private void findLimits(bool findmax = true, bool findmin = true) { //zoekt de limieten waar er om gevraagt wordt van de huidige signale en geeft commando om de scale aan te passen
-            if(findmax)
-            {
-                ystop = channels[0].Serie[0];
-                foreach (var ch in channels)
+                if (channels.Count != 0)
                 {
-                    for (i = 0; i < metingen; i++)
+            if (findmax)
+            {
+                    ystop = channels[0].Serie[0];
+                    foreach (var ch in channels)
                     {
-                        if (ch.Serie[i] > ystop) { ystop = ch.Serie[i]; MaxIndex = i; }
+                        for (i = 0; i < metingen; i++)
+                        {
+                            if (ch.Serie[i] > ystop) { ystop = ch.Serie[i]; MaxIndex = i; }
+                        }
                     }
                 }
-            }
-            if(findmin)
-            {
-                ystart = channels[0].Serie[0];
-                foreach (var ch in channels)
+                if (findmin)
                 {
-                    for (i = 0; i < metingen; i++)
+                    ystart = channels[0].Serie[0];
+                    foreach (var ch in channels)
                     {
-                        if (ch.Serie[i] < ystart) { ystart = ch.Serie[i]; MinIndex = i; }
+                        for (i = 0; i < metingen; i++)
+                        {
+                            if (ch.Serie[i] < ystart) { ystart = ch.Serie[i]; MinIndex = i; }
+                        }
                     }
                 }
+                scaleChanging = true;
+            } else
+            {
+                ystop = yboxMax;
+                ystart = yboxMin;
             }
-            scaleChanging = true;
+
         }
 
         private void sendData() { //stuurt data uit op de Seriële comunicate als er een verbinding is

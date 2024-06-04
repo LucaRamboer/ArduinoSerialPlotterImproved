@@ -22,17 +22,20 @@ namespace WPFCharting
         private int metingen = 50;
         private double height;
         private readonly Canvas chart;
+        private TextBlock Limit;
+        private bool offLowerLimit, offHigherLimit, limitNotified;
 
         private double[] temp = null;
 
         public double[] Serie = new double[50];
 
-        public channel(int index, SolidColorBrush color, double height, Canvas chart)
+        public channel(int index, SolidColorBrush color, double height, Canvas chart, TextBlock Limit)
         {
             this.index = index;
             this.color = color;
             this.height = height - MainWindow.yAxisStart;
             this.chart = chart;
+            this.Limit = Limit;
         }
 
         public void setOrigin (double height)
@@ -84,14 +87,28 @@ namespace WPFCharting
             chart.Children.Add(chartPolyline);//voegt de nieuwe polyline toe aan onze chart
 
             //logia voor op elke x-waarde de juiste y waarde te plakken en deze dan vervolgens toe te voegen aan de polyline
+            offLowerLimit = false;
+            offHigherLimit = false; 
             for (i = 0; i < metingen; i++)
             {
                 point.X = MainWindow.xAxisStart + i * MainWindow.xinterval;
                 deltaValue = Serie[i] - MainWindow.ystart;
-                if (deltaValue < 0) point.Y = MainWindow.yAxisLine.Y2 + 5;
+                if (deltaValue < 0) { point.Y = MainWindow.yAxisLine.Y2 + 5; offLowerLimit = true; }
                 else point.Y = height - (deltaValue * MainWindow.yscale);
                 chartPolyline.Points.Add(point);
             }
+            if ((offLowerLimit || offHigherLimit))
+            {
+                if (!limitNotified) { 
+                    Limit.Text += $"{index} ";
+                    limitNotified = true;
+                }
+            }else if(limitNotified)
+            {
+                Limit.Text = Limit.Text.Replace($" {index} ", " ");
+                limitNotified = false;
+            }
+
         }
 
         public void remove()

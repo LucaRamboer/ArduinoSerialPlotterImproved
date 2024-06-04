@@ -57,8 +57,12 @@
         <Label Content="segments:" Grid.Row="10" Grid.Column="0" Grid.ColumnSpan="2"/>
             
         <TextBox  Name="ySeg" Height="20" Grid.Row="10" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
-            
-        <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
+
+        <Label Name="Limit" Grid.Row="11" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="3" MaxWidth="117" HorizontalAlignment="Left">
+            <TextBlock Name="LimitBlock" TextWrapping="WrapWithOverflow" Text="Channels of limit: "/>
+        </Label>
+
+            <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
 
         <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 155" IsChecked="false"/>
 
