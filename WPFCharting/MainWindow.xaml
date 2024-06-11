@@ -58,15 +58,18 @@
             
         <TextBox  Name="ySeg" Height="20" Grid.Row="10" Grid.Column="2" Text="10" Width="30" MaxLength="3" PreviewTextInput="NumberValidationTextBox"/>
 
-        <Label Name="Limit" Grid.Row="11" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="3" MaxWidth="117" HorizontalAlignment="Left">
+        <Label Name="Limit" Grid.Row="11" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="4" MaxWidth="150" Width="150" HorizontalAlignment="Left">
             <TextBlock Name="LimitBlock" TextWrapping="WrapWithOverflow" Text="Channels of limit: "/>
         </Label>
+        <Viewbox x:Name="OutOptions" Grid.ColumnSpan="4" Grid.Column="0" HorizontalAlignment="Left" Height="55" Margin="3,0,0,130" Grid.Row="12" Stretch="Fill" VerticalAlignment="Bottom" Width="80">
+            <Grid>
+                <CheckBox x:Name="autoscroll"  Content="auto scroll" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,5,40" IsChecked="True"/>
 
-            <CheckBox Name="autoscroll" Content="auto scroll" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 170" IsChecked="True"/>
+                <CheckBox x:Name="SaveToFile" Content="save to file" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,3,25" IsChecked="false"/>
 
-        <CheckBox Name="SaveToFile" Content="save to file" Grid.Row="13" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Margin="0, 0, 0, 155" IsChecked="false"/>
-
-        <Button Name="pathSelector" Content="file location" Grid.Row="13" Grid.ColumnSpan="3" VerticalAlignment="Bottom" Margin="1, 0, 20, 130"/>
+                <Button x:Name="pathSelector" Content="file location" VerticalAlignment="Top" HorizontalAlignment="Center" Width="80" Margin="0,35,0,0"/>
+            </Grid>
+        </Viewbox>
 
         <ScrollViewer Name="textScrol" Grid.ColumnSpan="4" VerticalAlignment="Bottom" Grid.Row="12" MaxHeight="180" Height="180" Margin="100, 0, 0, 20">
             <TextBlock Name="TextOut" TextWrapping="Wrap"/>

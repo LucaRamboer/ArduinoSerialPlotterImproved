@@ -22,6 +22,7 @@ using System.Linq.Expressions;
 using System.Windows.Media.Animation;
 using static System.Net.Mime.MediaTypeNames;
 using System.Management;
+using System.Diagnostics.Eventing.Reader;
 
 namespace WPFCharting
 {
@@ -33,7 +34,7 @@ namespace WPFCharting
         int i;
         private bool scaleChanging, savetofile, connected, interval0;
         public static Line xAxisLine, yAxisLine, line;
-        public static double xAxisStart = 150, yAxisStart = 250, yAxisStop = 50;
+        public static double xAxisStart = 170, yAxisStart = 250, yAxisStop = 50;
         public static double xinterval { get; set; } = 50;
         public static double yinterval { get; set; } = 50;
         public double yPointInterval;
@@ -50,7 +51,7 @@ namespace WPFCharting
         public string data;
         private string tempS;
         private SerialPort SerPort;
-        readonly Regex regexN = new Regex("^-{0,1}[0-9]{0,}$");
+        readonly Regex regexN = new Regex("^-?[0-9]{0,},?[0-9]{0,}$");
         readonly Regex regex = new Regex("[^0-9]+");
         readonly Regex regexIn = new Regex("[0-9.]+");
         TextBlock yTextBlock0, textBlock;
@@ -324,7 +325,7 @@ namespace WPFCharting
 
         private void run()
         {
-            xinterval = (this.ActualWidth - xAxisStart - 70) / (metingen - 1); //bepaalt de juiste hoeveelheid pixels per meting
+            xinterval = (this.ActualWidth - xAxisStart - 50) / (metingen - 1); //bepaalt de juiste hoeveelheid pixels per meting
             if (xinterval < 0) xinterval = 0;
             
             foreach (var channel in channels) // roept voor elk bestaand kannaal de volgende functies op.
@@ -333,20 +334,32 @@ namespace WPFCharting
             }
             chartCanvas.Children.Clear();
             yAxisStart = 250;
-            if(this.ActualHeight < 550)
+            if (this.ActualHeight < 550)
             {
                 if (this.ActualHeight < 300)
+                {
                     yAxisStart = 0;
+                    OutOptions.Visibility = Visibility.Hidden;
+                }
                 else
                 {
+                   
                     yAxisStart = 250 - (550 - this.ActualHeight);
+                    OutOptions.Visibility = Visibility.Visible;
+                    OutOptions.VerticalAlignment = VerticalAlignment.Top;
+                    OutOptions.Margin = new Thickness(3, 12, 0, 0);
                 }
+            } else
+            {
+                OutOptions.Visibility = Visibility.Visible;
+                OutOptions.VerticalAlignment = VerticalAlignment.Bottom;
+                OutOptions.Margin = new Thickness(3, 0, 0, 130);
             }
             xAxisLine = new Line()
             {
                 X1 = xAxisStart,
                 Y1 = this.ActualHeight - yAxisStart,
-                X2 = this.ActualWidth - 70,
+                X2 = this.ActualWidth - 50,
                 Y2 = this.ActualHeight - yAxisStart,
                 Stroke = Brushes.LightGray,
                 StrokeThickness = 1,
@@ -429,7 +442,7 @@ namespace WPFCharting
                     {
                         X1 = xAxisStart,
                         Y1 = yPoint,
-                        X2 = this.ActualWidth - 70,
+                        X2 = this.ActualWidth - 50,
                         Y2 = yPoint,
                         Stroke = Brushes.LightGray,
                         StrokeThickness = 1,
