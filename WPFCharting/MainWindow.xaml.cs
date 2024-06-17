@@ -190,22 +190,22 @@ namespace WPFCharting
 
         
 
-        static ManagementObject[] FindPorts(){
+        static ManagementObject[] FindPorts(){ //Pakt alle seriele poorten
             try
             {
                 ManagementObjectSearcher searcher = new ManagementObjectSearcher("root\\CIMV2", "SELECT * FROM WIN32_PnPEntity");
                 List<ManagementObject> objects = new List<ManagementObject>();
 
-                foreach (ManagementObject obj in searcher.Get())
+                foreach (ManagementObject obj in searcher.Get()) //voegt alle gevonden ports samen in een List
                 {
                     objects.Add(obj);
                 }
-                return objects.ToArray();
+                return objects.ToArray(); //zet de lijst om in een array en returnd alle gevonden ports
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error...!");
-                return new ManagementObject[] { };
+                return new ManagementObject[] { };//returnd leeg obj als er een fout gebeurd
             }
         }
 
@@ -216,13 +216,13 @@ namespace WPFCharting
             {
                 try
                 {
-                    if (obj["Caption"] != null)
+                    if (obj["Caption"] != null) //zorgt er voor dat we niks doen met een leeg obj
                     {
-                        if (obj["Caption"].ToString().Contains("(COM"))
+                        if (obj["Caption"].ToString().Contains("(COM")) //checkt of het gevonden obj een seriele poort is
                         {
-                            string ComName = ParseCOMName(obj);
-                            if (ComName != null)
-                                ports.Add(ComName + "\n" + obj["Description"].ToString());
+                            string ComName = ParseCOMName(obj); //haalt de poort naam uit het obj
+                            if (ComName != null) // als de naam bestaat
+                                ports.Add(ComName + "\n" + obj["Description"].ToString());//voeg de poort toe aan de list met de descriptie van de poort
                         }
                     }
                 }
@@ -232,7 +232,7 @@ namespace WPFCharting
                 }
             }
 
-            return ports.ToArray();
+            return ports.ToArray();// zet de lijst om naar een array en returnd deze
         }
 
 
@@ -251,9 +251,10 @@ namespace WPFCharting
             return null;
         }
 
-        void FetchAvailablePorts()
+
+        void FetchAvailablePorts() //start de sequentie om alle huidige poorten in de ports box te steken
         {
-            Portsbox.Items.Clear();
+            Portsbox.Items.Clear(); // leegt de ports box
             foreach (var port in FindAllPorts())
             {
                 Portsbox.Items.Add(port);
@@ -332,7 +333,8 @@ namespace WPFCharting
             {
                 channel.setOrigin(this.ActualHeight);
             }
-            chartCanvas.Children.Clear();
+                chartCanvas.Children.Clear();
+            
             yAxisStart = 250;
             if (this.ActualHeight < 550)
             {
@@ -415,15 +417,18 @@ namespace WPFCharting
             yPointInterval = (yAxisLine.Y2 - yAxisLine.Y1 - 1) / ysegments;
             if (yPointInterval < 1) yPointInterval = 1;
             yinterval = (ystop - ystart) / ysegments;
-            if (yinterval == 0) {
+            if (yinterval == 0 && ySeg.Text != "0") { //wat als er geen verschil in boven en onder grenzen is slaagt oude segments op om deze terug toe te voegen wanneer er weer een dikte komt en zet de segments op 0
                 ysegmentsOld = ysegments;
                 ysegments = 0; 
                 ySeg.Text = "0";
                 interval0 = true;
-            } else if (interval0) {
+                metingenBox.IsEnabled = false;
+            }
+            else if (interval0) {
                 ysegments = ysegmentsOld;
                 ySeg.Text = $"{ysegments}";
                 interval0 = false;
+                metingenBox.IsEnabled = true;
             }
             yscale = (yAxisLine.Y2 - yAxisLine.Y1) / (ystop - ystart);
 

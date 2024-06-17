@@ -43,7 +43,7 @@ namespace WPFCharting
             this.height = height - MainWindow.yAxisStart;
         }
 
-        public void Sizing(int verzetting) 
+        public void Sizing(int verzetting)
         {
             Size = metingen;
             metingen = verzetting;
